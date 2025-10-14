@@ -1,0 +1,171 @@
+/* Leaflet CSS dosyalarını import et */
+@import 'leaflet/dist/leaflet.css';
+
+/* Push-to-talk butonu için özel animasyonlar */
+@keyframes talk-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.talk-pulse {
+  animation: talk-pulse 1.5s infinite;
+}
+
+.wave-animation {
+  animation: wave 0.8s ease-in-out infinite;
+}
+
+/* Harita için özel stil */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* Harita marker'ları için özel stiller */
+.talking-marker {
+  filter: drop-shadow(0 0 10px #ef4444);
+  animation: talk-pulse 1s infinite;
+}
+
+.current-user-marker {
+  filter: drop-shadow(0 0 10px #10b981);
+}
+
+/* Ses seviyesi göstergesi */
+.audio-level {
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.audio-level-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #10b981 30%, #f59e0b 70%, #ef4444 100%);
+  transition: width 0.1s ease;
+}
+
+/* Mobil uyumluluk */
+@media (max-width: 768px) {
+  .push-to-talk-container {
+    padding: 1rem;
+  }
+  
+  .voice-map-container {
+    height: 300px;
+  }
+  
+  .sidebar-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: white;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar-panel.open {
+    transform: translateY(0);
+  }
+}
+
+/* Push-to-talk butonunda dokunma desteği */
+.ptt-button {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.ptt-button:active {
+  transform: scale(0.95);
+}
+
+/* Harita kontrol paneli */
+.map-controls {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Ses durumu göstergesi */
+.voice-status {
+  position: relative;
+  overflow: hidden;
+}
+
+.voice-status::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.voice-status.active::before {
+  left: 100%;
+}
+
+/* Kullanıcı listesi animasyonları */
+.user-list-item {
+  transition: all 0.2s ease;
+}
+
+.user-list-item:hover {
+  transform: translateX(4px);
+  background-color: #f8fafc;
+}
+
+.user-list-item.talking {
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Geolocation error style */
+.geolocation-error {
+  background: linear-gradient(45deg, #fee2e2, #fecaca);
+  border: 1px solid #fca5a5;
+}
+
+/* Success notification */
+.success-notification {
+  background: linear-gradient(45deg, #d1fae5, #a7f3d0);
+  border: 1px solid #6ee7b7;
+}

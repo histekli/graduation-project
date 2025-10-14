@@ -1,0 +1,99 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://db:27017/carvoice
+      - JWT_SECRET=your_jwt_secret_here
+      - TURN_SECRET=carvoice_turn_secret_2024
+      - HOST_IP=${HOST_IP:-localhost}
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - carvoice-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+      - "3443:3443"
+      - "3001:3001"
+    environment:
+      - REACT_APP_BACKEND_URL=http://${HOST_IP:-localhost}:5000
+      - REACT_APP_SOCKET_URL=ws://${HOST_IP:-localhost}:5000
+      - HOST_IP=${HOST_IP:-localhost}
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - carvoice-network
+
+  db:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=carvoice
+    networks:
+      - carvoice-network
+
+  coturn:
+    image: instrumentisto/coturn:latest
+    restart: unless-stopped
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+      - "5349:5349/tcp"
+      - "49160-49200:49160-49200/udp"
+    environment:
+      - COTURN_LISTENING_PORT=3478
+      - COTURN_EXTERNAL_IP=${HOST_IP:-127.0.0.1}
+      - COTURN_MIN_PORT=49160
+      - COTURN_MAX_PORT=49200
+      - COTURN_STATIC_AUTH_SECRET=carvoice_turn_secret_2024
+    command: |
+      sh -c "
+      turnserver \
+      --listening-port=3478 \
+      --tls-listening-port=5349 \
+      --min-port=49160 \
+      --max-port=49200 \
+      --verbose \
+      --fingerprint \
+      --lt-cred-mech \
+      --use-auth-secret \
+      --static-auth-secret=carvoice_turn_secret_2024 \
+      --realm=carvoice.local \
+      --server-name=carvoice.local \
+      --external-ip=\${HOST_IP:-127.0.0.1} \
+      --listening-ip=0.0.0.0 \
+      --relay-ip=0.0.0.0 \
+      --no-multicast-peers \
+      --no-cli \
+      --no-tls \
+      --no-dtls \
+      --stale-nonce=600 \
+      --max-bps=1000000 \
+      --bps-capacity=0 \
+      --total-quota=0 \
+      --user-quota=0 \
+      --no-stdout-log
+      "
+    networks:
+      - carvoice-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  carvoice-network:
+    driver: bridge
