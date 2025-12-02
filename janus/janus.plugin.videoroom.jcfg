@@ -1,0 +1,129 @@
+# Janus VideoRoom Plugin Konfigürasyonu
+# GeoTalk Car Voice için ses odaklı room'lar
+
+general: {
+	# Genel plugin ayarları
+	admin_key = "carvoice_janus_admin"
+	
+	# Ses kalitesi ve performans ayarları
+	# string_ids = false
+	# lock_rtp_forward = true
+	# lock_play_file = true
+	# lock_record_file = true
+}
+
+# Öntanımlı oda konfigürasyonları
+rooms: [
+	{
+		# Ana ses sohbet odası
+		room = 1234
+		description = "GeoTalk Voice Chat Room"
+		is_private = false
+		secret = ""
+		pin = ""
+		require_pvtid = false
+		signed_tokens = false
+		
+		# Ses odası ayarları
+		publishers = 50              # Maksimum konuşmacı sayısı
+		bitrate = 128000            # Ses bitrate (128 kbps)
+		bitrate_cap = false
+		fir_freq = 0                # Video yok, FIR gereksiz
+		audiocodec = "opus"         # Öncelikli ses codec'i
+		videocodec = ""             # Video devre dışı
+		vp9_profile = ""
+		h264_profile = ""
+		opus_fec = true             # Opus FEC (Forward Error Correction)
+		opus_dtx = true             # Opus DTX (Discontinuous Transmission)
+		video_svc = false
+		
+		# Ses-özel ayarlar
+		audio_active_packets = 25   # Ses aktivite algılama
+		audio_level_average = 25    # Ortalama ses seviyesi
+		
+		# Kayıt ayarları
+		record = false
+		rec_dir = "/opt/janus/recordings"
+		lock_record = false
+		
+		# Yayın ayarları
+		notify_joining = true       # Katılım bildirimleri
+		require_e2ee = false        # End-to-end şifreleme (opsiyonel)
+		
+		# Mobil optimizasyon
+		transport_wide_cc_ext = true
+		playoutdelay_ext = true
+		audiolevel_ext = true
+		videoorient_ext = false     # Video yok
+		playoutdelay_ext = true
+	},
+	{
+		# Test odası
+		room = 5678
+		description = "GeoTalk Test Room"
+		is_private = false
+		publishers = 10
+		bitrate = 64000             # Düşük kalite test için
+		audiocodec = "opus"
+		opus_fec = true
+		notify_joining = true
+	}
+]
+
+# Codec öncelikleri - Ses odaklı
+codecs: [
+	"opus",                        # En yüksek öncelik: Opus (en iyi ses kalitesi)
+	"multiopus", 
+	"g722",                        # Yedek: G.722
+	"pcmu",                        # Son çare: PCMU
+	"pcma"
+]
+
+# Ses işleme ayarları
+audio: {
+	# Opus codec ayarları
+	opus_fec = true                # Forward Error Correction
+	opus_dtx = true                # Discontinuous Transmission (sessizlik algılama)
+	
+	# Ses seviyesi ve AGC
+	audio_level_average = 25
+	audio_active_packets = 25
+	
+	# Jitter buffer ayarları (düşük latency için)
+	min_delay = 40                 # Minimum gecikme (ms)
+	max_delay = 200                # Maksimum gecikme (ms)
+}
+
+# Events
+events: {
+	enable = true
+	
+	# Ses odası eventleri
+	room_events = [
+		"joined",
+		"leaving", 
+		"left",
+		"published",
+		"unpublished",
+		"talking",                  # Konuşma algılama
+		"stopped-talking"
+	]
+}
+
+# Admin API ayarları
+admin: {
+	admin_secret = "carvoice_janus_admin"
+	
+	# İzin verilen admin komutları
+	allowed = [
+		"list_rooms",
+		"list_participants", 
+		"exists",
+		"create",
+		"destroy", 
+		"kick",
+		"moderate",
+		"enable_recording",
+		"stop_recording"
+	]
+}

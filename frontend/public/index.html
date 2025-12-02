@@ -17,6 +17,30 @@
          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
          crossorigin=""/>
     
+    <!-- Janus Gateway JavaScript Client -->
+    <script src="https://cdn.jsdelivr.net/npm/janus-gateway@0.11.8/html/janus.js"></script>
+    
+    <!-- Disable WebSocket HMR errors in console -->
+    <script>
+      // Suppress WebSocket connection errors for /ws endpoint
+      if (window.WebSocket) {
+        const OriginalWebSocket = window.WebSocket;
+        window.WebSocket = function(url, protocols) {
+          // Ignore HMR WebSocket connections that fail
+          if (url && url.includes('/ws')) {
+            console.log('[HMR] WebSocket disabled for HTTPS mode');
+            return {
+              close: () => {},
+              send: () => {},
+              addEventListener: () => {},
+              removeEventListener: () => {}
+            };
+          }
+          return new OriginalWebSocket(url, protocols);
+        };
+      }
+    </script>
+    
     <title>CarVoice - Araç İçi Sesli İletişim</title>
   </head>
   <body>

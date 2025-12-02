@@ -1,19 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../contexts/SocketContext';
-import { useWebRTC } from '../hooks/useWebRTC';
+import { useAuth } from '../contexts/AuthContext';
+import useMediasoup from '../hooks/useMediasoup';
 import { useGeolocation } from '../hooks/useGeolocation';
 import VoiceMap from '../components/VoiceMap';
 import PushToTalkButton from '../components/PushToTalkButton';
 import SecurityWarning from '../components/SecurityWarning';
 import MicrophoneTest from '../components/MicrophoneTest';
 import MobilePermissionHelper from '../components/MobilePermissionHelper';
+import AudioWaveform from '../components/AudioWaveform';
 import { MapPin, Users, LogOut, Volume2 } from 'lucide-react';
+
+// Helper functions
+const isMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+const checkMediaDevicesSupport = () => {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+      return 'security-blocked';
+    }
+    return 'none';
+  }
+  if (navigator.mediaDevices.getSupportedConstraints) {
+    return 'modern';
+  }
+  return 'legacy';
+};
 
 const VoiceChat = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { socket, connected, joinRoom: socketJoinRoom } = useSocket();
+  const { user } = useAuth();
   
   // States
   const [room, setRoom] = useState(null);
@@ -39,23 +60,17 @@ const VoiceChat = () => {
     return () => clearTimeout(timeout);
   }, [loading, socket, connected]);
 
-  // Hooks
+  // Hooks - Using Mediasoup SFU
   const {
     isConnected,
     isTalking,
     localStream,
     remoteStreams,
     audioPermissionGranted,
-    audioContext,
     initializeAudio,
-    initializeAudioMobile,
     startTalking,
-    stopTalking,
-    checkMicrophonePermission,
-    checkMediaDevicesSupport,
-    isMobile,
-    isIOS
-  } = useWebRTC(roomId);
+    stopTalking
+  } = useMediasoup(socket, roomId, user?._id);
 
   const {
     position,
@@ -72,6 +87,23 @@ const VoiceChat = () => {
     if (!roomId) {
       console.log('⚠️ Room ID missing');
       setError('Oda ID bulunamadı');
+      setLoading(false);
+      return;
+    }
+
+    // Misafir kullanıcılar için basitleştirilmiş akış
+    if (user?.isGuest) {
+      console.log('👤 Misafir kullanıcı - Basitleştirilmiş oda yükleme');
+      setRoom({
+        _id: roomId,
+        name: roomId === 'guest-test-room' ? 'Test Odası' : `Oda ${roomId}`,
+        isGuest: true
+      });
+      setRoomUsers([{
+        _id: user._id,
+        username: user.username,
+        isGuest: true
+      }]);
       setLoading(false);
       return;
     }
@@ -145,7 +177,7 @@ const VoiceChat = () => {
 
     // Sayfa ilk açıldığında veya yenilendiğinde oda bağlantısı kurulur
     joinRoomTask();
-  }, [socket, roomId, connected, socketJoinRoom]);
+  }, [socket, roomId, connected, socketJoinRoom, user]);
 
   // Socket event listeners
   useEffect(() => {
@@ -230,6 +262,23 @@ const VoiceChat = () => {
       console.log('🎤 Kullanıcı konuşmaya başladı:', data);
       if (data?.userId) {
         setTalkingUsers(prev => [...prev.filter(id => id !== data.userId), data.userId]);
+        
+        // Remote stream'i kontrol et
+        const remoteStream = remoteStreams.get(data.userId);
+        if (remoteStream) {
+          console.log('🔊 Remote stream durumu:', {
+            userId: data.userId,
+            active: remoteStream.active,
+            audioTracks: remoteStream.getAudioTracks().map(t => ({
+              enabled: t.enabled,
+              muted: t.muted,
+              readyState: t.readyState,
+              label: t.label
+            }))
+          });
+        } else {
+          console.warn('⚠️ Remote stream bulunamadı:', data.userId);
+        }
       }
     };
 
@@ -311,51 +360,32 @@ const VoiceChat = () => {
         console.error('❌ Error during socket cleanup:', error);
       }
     };
-  }, [socket, connected, roomId]);
+  }, [socket, connected, roomId, user]);
 
-  // Ses başlatma - geliştirilmiş versiyon
+  // Ses başlatma - SFU ile sadeleştirilmiş versiyon
   const handleEnableAudio = async () => {
     try {
       setError(null);
-      console.log('🎤 Ses başlatma işlemi başlıyor...');
+      console.log('🎤 Ses başlatma işlemi başlıyor (SFU)...');
       
-      // Önce mikrofon izin durumunu kontrol et
-      const permissionState = await checkMicrophonePermission();
-      console.log('🔐 Mevcut mikrofon izin durumu:', permissionState);
-      
-        // Kullanıcı deneyimini iyileştir
-        if (permissionState === 'denied') {
-          let message = 'Mikrofon izni reddedilmiş. Lütfen tarayıcı ayarlarından mikrofon iznini etkinleştirin ve sayfayı yenileyin.';
-          
-          // Tarayıcıya özel rehberlik ekle
-          if (navigator.userAgent.includes('Chrome')) {
-            message += '\n\n🔧 Chrome için: Adres çubuğundaki kilit simgesine tıklayın ve mikrofon iznini "İzin Ver" olarak değiştirin.';
-            message += '\n\nVeya chrome://settings/content/microphone adresini ziyaret edin.';
-          } else if (navigator.userAgent.includes('Safari')) {
-            message += '\n\n🔧 Safari için: Safari → Tercihler → Web Siteleri → Mikrofon menüsünden bu siteye izin verin.';
-          } else if (navigator.userAgent.includes('Firefox')) {
-            message += '\n\n🔧 Firefox için: Adres çubuğundaki mikrofon simgesine tıklayın ve izni değiştirin.';
-          }
-          
-          setError(message);
-          return;
-        }      await initializeAudio();
+      await initializeAudio();
       setAudioEnabled(true);
-      console.log('✅ Ses başarıyla başlatıldı');
+      console.log('✅ Ses başarıyla başlatıldı (SFU)');
       
-      // Başarı bildirimi
-      const successMessage = 'Mikrofon başarıyla etkinleştirildi! Artık konuşabilirsiniz.';
-      console.log('✅', successMessage);
+      console.log('✅ Mikrofon başarıyla etkinleştirildi! SFU üzerinden ses iletiliyor.');
       
     } catch (error) {
       console.error('❌ Ses başlatma hatası:', error);
       
       let userFriendlyMessage = error.message;
       
-      // Mobil cihaz uyarıları
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      if (isMobile) {
-        userFriendlyMessage += '\n\n📱 Mobil cihaz ipuçları:\n- Tarayıcıyı tam ekran modunda kullanın\n- Cihazınızın sesli modu açık olduğundan emin olun\n- Safari kullanıyorsanız, ayarlardan mikrofon iznini kontrol edin';
+      // Mikrofon izin hatalarını kontrol et
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        userFriendlyMessage = 'Mikrofon izni reddedildi. Lütfen tarayıcı ayarlarından mikrofon iznini etkinleştirin.';
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        userFriendlyMessage = 'Mikrofon bulunamadı. Lütfen bir mikrofon bağlayın.';
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        userFriendlyMessage = 'Mikrofon başka bir uygulama tarafından kullanılıyor olabilir.';
       }
       
       // HTTPS uyarısı
@@ -374,17 +404,23 @@ const VoiceChat = () => {
 
   // Konuşma başlama
   const handleStartTalking = () => {
+    console.log('📲 handleStartTalking çağrıldı');
     if (audioEnabled && socket && connected && typeof socket.emit === 'function') {
-      startTalking();
-      socket.emit('start_talking', { roomId });
+      const result = startTalking();
+      if (result) {
+        socket.emit('start_talking', { roomId });
+      }
     }
   };
 
   // Konuşma bitirme
   const handleStopTalking = () => {
+    console.log('📲 handleStopTalking çağrıldı');
     if (audioEnabled && socket && connected && typeof socket.emit === 'function') {
-      stopTalking();
-      socket.emit('stop_talking', { roomId });
+      const result = stopTalking();
+      if (result) {
+        socket.emit('stop_talking', { roomId });
+      }
     }
   };
 
@@ -397,6 +433,30 @@ const VoiceChat = () => {
   // Odadan ayrılma fonksiyonu
   const leaveRoom = () => {
     console.log('🚪 Odadan ayrılma işlemi başlatılıyor');
+    
+    // Misafir kullanıcılar için basitleştirilmiş akış
+    if (user?.isGuest) {
+      console.log('👤 Misafir kullanıcı - Basitleştirilmiş odadan ayrılma');
+      
+      // Konum izlemeyi durdur
+      if (typeof stopTracking === 'function') {
+        stopTracking();
+        console.log('✅ Konum izleme durduruldu');
+      }
+      
+      // Medya akışlarını temizle
+      if (localStream) {
+        try {
+          localStream.getTracks().forEach(track => track.stop());
+          console.log('✅ Medya akışları temizlendi');
+        } catch (err) {
+          console.error('❌ Medya akışı temizleme hatası:', err);
+        }
+      }
+      
+      navigate('/dashboard');
+      return;
+    }
     
     // Socket.io emit ile odadan ayrılma sinyali gönder
     if (socket && connected && typeof socket.emit === 'function') {
@@ -782,7 +842,7 @@ const VoiceChat = () => {
                               try {
                                 setError(null);
                                 console.log('📱 Mobil basit mod deneniyor...');
-                                await initializeAudioMobile();
+                                await initializeAudio();
                                 setAudioEnabled(true);
                                 console.log('✅ Mobil basit mod başarılı');
                               } catch (error) {
@@ -859,8 +919,19 @@ const VoiceChat = () => {
                     </div>
                     
                     {talkingUsers.includes(user._id) && (
-                      <div className="text-red-500 text-sm font-medium">
-                        🎤 Konuşuyor
+                      <div className="flex items-center space-x-2">
+                        <span className="text-red-500 text-sm font-medium">
+                          🎤 Konuşuyor
+                        </span>
+                        {remoteStreams.has(user._id) && (
+                          <div className="w-16">
+                            <AudioWaveform 
+                              stream={remoteStreams.get(user._id)} 
+                              color="#ef4444"
+                              height={20}
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

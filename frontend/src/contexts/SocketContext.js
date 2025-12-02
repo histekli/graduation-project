@@ -101,21 +101,28 @@ export const SocketProvider = ({ children }) => {
   // Initialize socket connection
   useEffect(() => {
     if (user && token) {
-      // HTTPS sayfasından aynı origin kullanarak bağlanalım
-      // setupProxy.js dosyası /socket.io isteklerini backend'e yönlendirecek
-      const socketUrl = window.location.origin;
-      
-      const newSocket = io(socketUrl, {
-        auth: {
-          token: token
-        },
-        transports: ['websocket', 'polling'],
-        // WebRTC için güvenlik ayarları - SSL hatalarını önlemek için
-        secure: false,
-        rejectUnauthorized: false,
-        forceNew: true,
-        withCredentials: false
+      console.log('� Socket bağlantısı başlatılıyor...', { 
+        user: user.username, 
+        isGuest: token.startsWith('guest_token_'),
+        token: token ? 'mevcut' : 'yok' 
       });
+      
+      const newSocket = io('/', {
+        auth: {
+          token: token,
+          isGuest: token.startsWith('guest_token_'),
+          username: user.username
+        },
+        transports: ['polling', 'websocket'],
+        upgrade: true,
+        rememberUpgrade: false,
+        forceNew: true,
+        reconnection: true,
+        timeout: 20000,
+        path: '/socket.io'
+      });
+      
+      console.log('🔌 Socket objesi oluşturuldu:', newSocket);
       
       dispatch({ type: socketActions.SET_SOCKET, payload: newSocket });
       

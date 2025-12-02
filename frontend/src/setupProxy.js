@@ -5,7 +5,7 @@ module.exports = function(app) {
   app.use(
     '/api',
     createProxyMiddleware({
-      target: 'http://backend:5000',
+      target: 'http://localhost:5000',
       changeOrigin: true,
       pathRewrite: {
         '^/api': '', // /api prefix'ini kaldır
@@ -18,10 +18,13 @@ module.exports = function(app) {
   app.use(
     '/socket.io',
     createProxyMiddleware({
-      target: 'http://backend:5000',
+      target: 'http://localhost:5000',
       changeOrigin: true,
       ws: true, // WebSocket desteği
       logLevel: 'debug',
+      secure: false,
+      timeout: 30000,
+      proxyTimeout: 30000,
     })
   );
 };

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2, VolumeX, Users, MapPin } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Mic, MicOff, Volume2, Users } from 'lucide-react';
 import AudioWaveform from './AudioWaveform';
 
 const PushToTalkButton = ({ 
@@ -12,72 +12,40 @@ const PushToTalkButton = ({
   nearbyUsersCount = 0,
   audioPermissionGranted = false
 }) => {
-  const [isPressed, setIsPressed] = useState(false);
-  const [keyPressed, setKeyPressed] = useState(false);
+  const [isTalkingActive, setIsTalkingActive] = useState(false);
   const audioRefs = useRef(new Map());
+  
+  // Toggle mantığı: Bir bas aç, bir bas kapat
 
-  // Keyboard event handlers (Space tuşu için)
+  // Toggle butonu - bir kez tıkla aç, bir kez tıkla kapat
+  const handleToggleClick = useCallback(() => {
+    if (!isConnected) return;
+    
+    if (isTalkingActive) {
+      setIsTalkingActive(false);
+      setTimeout(() => onStopTalking(), 0);
+    } else {
+      setIsTalkingActive(true);
+      setTimeout(() => onStartTalking(), 0);
+    }
+  }, [isTalkingActive, isConnected, onStartTalking, onStopTalking]);
+
+  // Keyboard event handler (Space tuşu) - toggle
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.code === 'Space' && !keyPressed && !event.repeat) {
+      if (event.code === 'Space' && !event.repeat) {
         event.preventDefault();
-        setKeyPressed(true);
-        setIsPressed(true);
-        onStartTalking();
-      }
-    };
-
-    const handleKeyUp = (event) => {
-      if (event.code === 'Space' && keyPressed) {
-        event.preventDefault();
-        setKeyPressed(false);
-        setIsPressed(false);
-        onStopTalking();
+        handleToggleClick();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [keyPressed, onStartTalking, onStopTalking]);
+  }, [handleToggleClick]);
 
-  // Mouse event handlers
-  const handleMouseDown = () => {
-    if (!keyPressed) {
-      setIsPressed(true);
-      onStartTalking();
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (!keyPressed) {
-      setIsPressed(false);
-      onStopTalking();
-    }
-  };
-
-  // Touch event handlers (mobil için)
-  const handleTouchStart = (e) => {
-    e.preventDefault();
-    if (!keyPressed) {
-      setIsPressed(true);
-      onStartTalking();
-    }
-  };
-
-  const handleTouchEnd = (e) => {
-    e.preventDefault();
-    if (!keyPressed) {
-      setIsPressed(false);
-      onStopTalking();
-    }
-  };
-
-  // Remote stream'leri ses elementlerine bağla - geliştirilmiş versiyon
+  // Remote stream'leri ses elementlerine bağla
   useEffect(() => {
     const handleRemoteStreams = async () => {
       for (const [userId, stream] of remoteStreams.entries()) {
@@ -91,13 +59,10 @@ const PushToTalkButton = ({
           audioElement.muted = false;
           audioElement.volume = 1.0;
           
-          // Mobil tarayıcılar için ek ayarlar
           audioElement.setAttribute('webkit-playsinline', 'true');
           audioElement.setAttribute('playsinline', 'true');
           
           audioRefs.current.set(userId, audioElement);
-          
-          // Audio element'i DOM'a ekle (bazı tarayıcılarda gerekli)
           audioElement.style.display = 'none';
           document.body.appendChild(audioElement);
           
@@ -106,23 +71,53 @@ const PushToTalkButton = ({
         
         if (audioElement.srcObject !== stream) {
           try {
-            audioElement.srcObject = stream;
+            console.log('🎵 Stream audio element\'e atanıyor:', userId);
+            console.log('📊 Stream details:', {
+              id: stream.id,
+              active: stream.active,
+              audioTracks: stream.getAudioTracks().length,
+              tracks: stream.getTracks().map(t => ({
+                kind: t.kind,
+                enabled: t.enabled,
+                muted: t.muted,
+                readyState: t.readyState
+              }))
+            });
             
-            // Play promise'i handle et
+            // Track'leri kontrol et ve unmute et
+            stream.getAudioTracks().forEach((track, index) => {
+              console.log(`🔊 Audio track ${index}:`, {
+                enabled: track.enabled,
+                muted: track.muted,
+                readyState: track.readyState
+              });
+              
+              // Track muted ise unmute et (bazı tarayıcılarda sorun olabilir)
+              if (track.muted) {
+                console.warn('⚠️ Track muted, enabling...');
+                track.enabled = true; // Ensure enabled
+              }
+            });
+            
+            audioElement.srcObject = stream;
+            console.log('✅ srcObject atandı, play() çağrılıyor...');
+            
             const playPromise = audioElement.play();
             if (playPromise !== undefined) {
               await playPromise;
+              console.log('▶️ Remote audio başarıyla başlatıldı:', userId);
+              console.log('🔊 Audio element durumu:', {
+                paused: audioElement.paused,
+                muted: audioElement.muted,
+                volume: audioElement.volume,
+                readyState: audioElement.readyState
+              });
             }
-            
-            console.log('▶️ Remote audio başlatıldı:', userId);
           } catch (error) {
             console.error('❌ Remote audio başlatma hatası:', userId, error);
             
-            // Kullanıcı etkileşimi gerekebilir
             if (error.name === 'NotAllowedError') {
               console.log('⚠️ Kullanıcı etkileşimi bekleniyor...');
-              
-              // Ses oynatma için kullanıcı tıklaması bekle
               const enableAudio = () => {
                 audioElement.play().then(() => {
                   console.log('✅ Remote audio kullanıcı etkileşimi sonrası başlatıldı');
@@ -160,17 +155,18 @@ const PushToTalkButton = ({
 
   // Component unmount'ta ses elementlerini temizle
   useEffect(() => {
+    const currentAudioRefs = audioRefs.current;
     return () => {
-      audioRefs.current.forEach(audioElement => {
+      currentAudioRefs.forEach(audioElement => {
         audioElement.srcObject = null;
       });
-      audioRefs.current.clear();
+      currentAudioRefs.clear();
     };
   }, []);
 
   return (
     <div className="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-lg">
-      {/* Bağlantı durumu - geliştirilmiş */}
+      {/* Bağlantı durumu */}
       <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
         <div className={`flex items-center space-x-2 ${audioPermissionGranted ? 'text-green-600' : 'text-orange-600'}`}>
           <div className={`w-2 h-2 rounded-full ${audioPermissionGranted ? 'bg-green-500' : 'bg-orange-500'}`}></div>
@@ -193,26 +189,22 @@ const PushToTalkButton = ({
         </div>
       </div>
 
-      {/* Ana Push-to-Talk butonu */}
-      <div className="relative">
+      {/* Ana Toggle butonu */}
+      <div className="relative w-full max-w-sm mx-auto">
         <button
           className={`
-            w-24 h-24 rounded-full transition-all duration-200 transform
-            ${isPressed || isTalking 
+            w-24 h-24 mx-auto rounded-full transition-all duration-200 transform
+            ${isTalkingActive || isTalking
               ? 'bg-red-500 hover:bg-red-600 scale-95 shadow-lg' 
-              : 'bg-blue-500 hover:bg-blue-600 shadow-md hover:scale-105'
+              : 'bg-green-500 hover:bg-green-600 shadow-md hover:scale-105'
             }
             ${!isConnected ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
             active:scale-90 select-none
           `}
-          onMouseDown={isConnected ? handleMouseDown : undefined}
-          onMouseUp={isConnected ? handleMouseUp : undefined}
-          onMouseLeave={isConnected ? handleMouseUp : undefined}
-          onTouchStart={isConnected ? handleTouchStart : undefined}
-          onTouchEnd={isConnected ? handleTouchEnd : undefined}
+          onClick={isConnected ? handleToggleClick : undefined}
           disabled={!isConnected}
         >
-          {isPressed || isTalking ? (
+          {isTalkingActive || isTalking ? (
             <Mic size={32} className="text-white mx-auto" />
           ) : (
             <MicOff size={32} className="text-white mx-auto" />
@@ -220,64 +212,73 @@ const PushToTalkButton = ({
         </button>
 
         {/* Konuşma animasyonu */}
-        {(isPressed || isTalking) && (
-          <div className="absolute inset-0 rounded-full border-4 border-red-300 animate-ping"></div>
+        {(isTalkingActive || isTalking) && (
+          <div className="absolute inset-0 rounded-full border-4 border-red-300 animate-ping pointer-events-none"></div>
         )}
       </div>
 
       {/* Durum metni */}
       <div className="text-center">
         <div className={`text-lg font-medium ${
-          isPressed || isTalking ? 'text-red-600' : 'text-gray-600'
+          (isTalkingActive || isTalking) ? 'text-red-600' : 'text-gray-600'
         }`}>
-          {isPressed || isTalking ? '🎤 Konuşuyorsunuz' : '🤫 Dinleme modunda'}
+          {(isTalkingActive || isTalking) ? '🎤 Konuşuyorsunuz' : '🤫 Dinleme modunda'}
         </div>
         
         <div className="text-sm text-gray-500 mt-1 text-center">
           {!audioPermissionGranted 
             ? 'Mikrofonunuza erişim için izin verin'
-            : isConnected 
-              ? 'Konuşmak için basılı tutun veya SPACE tuşunu kullanın'
-              : 'WebRTC bağlantısı kuruluyor...'
+            : !isConnected 
+              ? 'WebRTC bağlantısı kuruluyor...'
+              : isTalkingActive
+                ? '🔴 Konuşma aktif - Durdurmak için tekrar tıkla (veya SPACE)'
+                : '🟢 Konuşmak için tıkla (veya SPACE tuşu)'
           }
         </div>
       </div>
 
-      {/* Ses dalga formu */}
-      {isConnected && (
-        <div className="w-full mt-2 p-1 bg-gray-50 rounded-lg">
-          <AudioWaveform 
-            audioStream={localStream}
-            isActive={isPressed || isTalking}
-            color={isPressed || isTalking ? '#EF4444' : '#3B82F6'}
-            height={40}
-          />
+      {/* Kendi ses dalga formu */}
+      {isConnected && localStream && (
+        <div className="w-full space-y-2">
+          <div className="text-xs text-gray-600 font-medium">Senin Sesin:</div>
+          <div className="p-2 bg-gray-50 rounded-lg">
+            <AudioWaveform 
+              audioStream={localStream}
+              isActive={isTalkingActive || isTalking}
+              color={(isTalkingActive || isTalking) ? '#EF4444' : '#10B981'}
+              height={50}
+            />
+          </div>
         </div>
       )}
 
-      {/* Ses seviyeleri göstergesi */}
+      {/* Diğer kullanıcıların ses dalga formları */}
       {remoteStreams.size > 0 && (
-        <div className="w-full bg-gray-100 rounded-lg p-3">
-          <div className="text-sm text-gray-600 mb-2">Aktif Sesler:</div>
-          <div className="space-y-2">
+        <div className="w-full space-y-3">
+          <div className="text-xs text-gray-600 font-medium">Odadaki Diğer Kullanıcılar:</div>
+          <div className="space-y-3">
             {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
-              <div key={userId} className="flex items-center space-x-2">
-                <Volume2 size={16} className="text-green-500" />
-                <div className="flex-1 bg-green-200 rounded-full h-2">
-                  <div className="bg-green-500 rounded-full h-2 w-3/4 animate-pulse"></div>
+              <div key={userId} className="bg-green-50 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Volume2 size={16} className="text-green-600" />
+                    <span className="text-sm font-medium text-gray-700">
+                      Kullanıcı {userId.slice(0, 8)}
+                    </span>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                 </div>
-                <span className="text-xs text-gray-600">Kullanıcı {userId.slice(0, 8)}</span>
+                <AudioWaveform 
+                  audioStream={stream}
+                  isActive={true}
+                  color="#10B981"
+                  height={40}
+                />
               </div>
             ))}
           </div>
         </div>
       )}
-
-      {/* Kısayol bilgisi */}
-      <div className="text-xs text-gray-400 text-center border-t pt-2">
-        <div>💡 İpucu: Space tuşuna basarak da konuşabilirsiniz</div>
-        <div>🗺️ Haritada yakınınızdaki kullanıcıları görebilirsiniz</div>
-      </div>
     </div>
   );
 };

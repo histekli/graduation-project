@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSocket } from '../contexts/SocketContext';
 
 export const useGeolocation = () => {
@@ -181,8 +181,8 @@ export const useGeolocation = () => {
     return R * c;
   };
 
-  // Yakındaki kullanıcıları filtrele
-  const filterNearbyUsers = (users, maxDistance = 10) => {
+  // Yakındaki kullanıcıları filtrele - useCallback ile optimize edildi
+  const filterNearbyUsers = useCallback((users, maxDistance = 10) => {
     if (!position || !users || !Array.isArray(users)) return [];
     
     return users.filter(user => {
@@ -202,7 +202,7 @@ export const useGeolocation = () => {
         return false;
       }
     });
-  };
+  }, [position]);
 
   // Socket event handlers
   useEffect(() => {

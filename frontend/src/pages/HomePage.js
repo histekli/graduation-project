@@ -62,15 +62,18 @@ const HomePage = () => {
                 to="/register" 
                 className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
               >
-                Hemen Başlayın
+                Hesap Oluştur
               </Link>
               <Link 
                 to="/login" 
                 className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors"
               >
-                Giriş Yapın
+                Giriş Yap / Hızlı Giriş
               </Link>
             </div>
+            <p className="mt-4 text-sm text-primary-200">
+              💡 Kayıt olmadan hızlı giriş yaparak anında sohbete başlayabilirsiniz!
+            </p>
           </div>
         </div>
       </section>

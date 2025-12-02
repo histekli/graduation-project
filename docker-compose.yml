@@ -6,11 +6,13 @@ services:
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://db:27017/carvoice
+      - REDIS_URL=redis://:carvoice_redis_2024@redis:6379
       - JWT_SECRET=your_jwt_secret_here
       - TURN_SECRET=carvoice_turn_secret_2024
       - HOST_IP=${HOST_IP:-localhost}
     depends_on:
       - db
+      - redis
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -38,11 +40,51 @@ services:
   db:
     image: mongo:6.0
     ports:
-      - "27017:27017"
+      - "0.0.0.0:27017:27017"
     volumes:
       - mongodb_data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=carvoice
+    networks:
+      - carvoice-network
+    command: mongod --bind_ip_all
+
+  # Redis - Location Data Cache
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass carvoice_redis_2024
+    volumes:
+      - redis_data:/data
+    networks:
+      - carvoice-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Janus WebRTC Gateway - SFU Server
+  janus:
+    image: canyan/janus-gateway:latest
+    restart: unless-stopped
+    ports:
+      - "8088:8088"     # HTTP API
+      - "8089:8089"     # HTTPS API
+      - "8188:8188"     # WebSocket
+      - "8989:8989"     # Admin API
+      - "10000-10200:10000-10200/udp"  # RTP/RTCP
+    environment:
+      - JANUS_API_SECRET=carvoice_janus_secret
+      - JANUS_ADMIN_SECRET=carvoice_janus_admin
+      - DOCKER_IP=${HOST_IP:-127.0.0.1}
+    volumes:
+      - ./janus/janus.jcfg:/opt/janus/etc/janus/janus.jcfg
+      - ./janus/janus.plugin.videoroom.jcfg:/opt/janus/etc/janus/janus.plugin.videoroom.jcfg
+    depends_on:
+      - coturn
     networks:
       - carvoice-network
 
@@ -93,6 +135,7 @@ services:
 
 volumes:
   mongodb_data:
+  redis_data:
 
 networks:
   carvoice-network:

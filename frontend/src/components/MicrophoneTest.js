@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, Volume2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Mic, MicOff, Volume2, CheckCircle, XCircle } from 'lucide-react';
 
 const MicrophoneTest = ({ onTestComplete }) => {
   const [testState, setTestState] = useState('idle'); // idle, testing, success, failed

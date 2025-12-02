@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, AlertTriangle, Smartphone, Monitor } from 'lucide-react';
+import { Shield, AlertTriangle, Smartphone } from 'lucide-react';
 
 const SecurityWarning = () => {
   const [showWarning, setShowWarning] = useState(false);

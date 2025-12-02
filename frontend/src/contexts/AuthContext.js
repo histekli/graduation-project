@@ -78,8 +78,13 @@ const setupAxiosInterceptors = (token, logout) => {
   // Request interceptor
   axios.interceptors.request.use(
     (config) => {
-      if (token) {
+      if (token && !token.startsWith('guest_token_')) {
         config.headers.Authorization = `Bearer ${token}`;
+        console.log('🔐 AuthContext: Token eklendi', token.substring(0, 20) + '...');
+      } else if (token && token.startsWith('guest_token_')) {
+        console.log('👤 AuthContext: Misafir token atlandı');
+      } else {
+        console.log('⚠️ AuthContext: Token yok');
       }
       return config;
     },
@@ -112,6 +117,30 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkToken = async () => {
       if (state.token) {
+        // Misafir token kontrolü
+        if (state.token.startsWith('guest_token_')) {
+          const guestUserData = localStorage.getItem('carvoice_guest_user');
+          if (guestUserData) {
+            try {
+              const guestUser = JSON.parse(guestUserData);
+              dispatch({
+                type: authActions.LOGIN_SUCCESS,
+                payload: {
+                  user: guestUser,
+                  token: state.token
+                }
+              });
+            } catch (error) {
+              console.error('Guest user parse error:', error);
+              logout();
+            }
+          } else {
+            logout();
+          }
+          return;
+        }
+        
+        // Normal token verification
         try {
           dispatch({ type: authActions.SET_LOADING, payload: true });
           
@@ -203,9 +232,48 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
   
+  // Guest Login function - Kayıt olmadan hızlı giriş
+  const loginAsGuest = useCallback(async (nickname) => {
+    try {
+      dispatch({ type: authActions.SET_LOADING, payload: true });
+      dispatch({ type: authActions.CLEAR_ERROR });
+      
+      // Misafir kullanıcı objesi oluştur
+      const guestUser = {
+        _id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        username: nickname,
+        email: `guest_${Date.now()}@temporary.local`,
+        isGuest: true,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Misafir token oluştur (gerçek bir token değil, sadece local)
+      const guestToken = `guest_token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // LocalStorage'a kaydet
+      localStorage.setItem('carvoice_token', guestToken);
+      localStorage.setItem('carvoice_guest_user', JSON.stringify(guestUser));
+      
+      dispatch({
+        type: authActions.LOGIN_SUCCESS,
+        payload: { user: guestUser, token: guestToken }
+      });
+      
+      toast.success(`Hoş geldiniz, ${nickname}! (Misafir Modu)`);
+      return { success: true };
+      
+    } catch (error) {
+      const message = 'Misafir girişi sırasında bir hata oluştu';
+      dispatch({ type: authActions.SET_ERROR, payload: message });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  }, []);
+  
   // Logout function
   const logout = useCallback(() => {
     localStorage.removeItem('carvoice_token');
+    localStorage.removeItem('carvoice_guest_user');
     dispatch({ type: authActions.LOGOUT });
     toast.success('Çıkış yapıldı');
   }, []);
@@ -227,6 +295,7 @@ export const AuthProvider = ({ children }) => {
     error: state.error,
     login,
     register,
+    loginAsGuest,
     logout,
     updateUser,
     clearError
