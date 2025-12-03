@@ -353,7 +353,12 @@ const VoiceChat = () => {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'application/json'
               }
-            }).catch(err => console.error('Component unmount oda ayrılma API hatası:', err));
+            }).catch(err => {
+              // Ignore 401 errors on unmount (token may be cleared)
+              if (err.status !== 401) {
+                console.error('Component unmount oda ayrılma API hatası:', err);
+              }
+            });
           }
         }
       } catch (error) {
@@ -876,6 +881,7 @@ const VoiceChat = () => {
                     localStream={localStream}
                     nearbyUsersCount={nearbyUsersWithDistance.length}
                     audioPermissionGranted={audioPermissionGranted}
+                    audioEnabled={audioEnabled}
                   />
                 )}
               </div>
@@ -890,48 +896,62 @@ const VoiceChat = () => {
               </div>
               
               <div className="max-h-64 overflow-y-auto">
-                {roomUsers.map((user) => (
+                {roomUsers.map((roomUser) => (
                   <div
-                    key={user._id}
-                    className={`p-3 border-b border-gray-100 flex items-center justify-between ${
-                      talkingUsers.includes(user._id) ? 'bg-red-50' : ''
+                    key={roomUser._id}
+                    className={`p-3 border-b border-gray-100 ${
+                      talkingUsers.includes(roomUser._id) ? 'bg-red-50' : ''
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-                        talkingUsers.includes(user._id) ? 'bg-red-500' : 'bg-blue-500'
-                      }`}>
-                        {user.username.charAt(0).toUpperCase()}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
+                          talkingUsers.includes(roomUser._id) ? 'bg-red-500 animate-pulse' : 'bg-blue-500'
+                        }`}>
+                          {roomUser.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{roomUser.username}</div>
+                          {roomUser.location && position && (
+                            <div className="text-xs text-gray-500">
+                              {calculateDistance(
+                                position.latitude,
+                                position.longitude,
+                                roomUser.location.latitude,
+                                roomUser.location.longitude
+                              ).toFixed(1)}km uzaklık
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{user.username}</div>
-                        {user.location && position && (
-                          <div className="text-xs text-gray-500">
-                            {calculateDistance(
-                              position.latitude,
-                              position.longitude,
-                              user.location.latitude,
-                              user.location.longitude
-                            ).toFixed(1)}km uzaklık
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {talkingUsers.includes(user._id) && (
-                      <div className="flex items-center space-x-2">
-                        <span className="text-red-500 text-sm font-medium">
+                      
+                      {talkingUsers.includes(roomUser._id) && (
+                        <span className="text-red-500 text-xs font-medium">
                           🎤 Konuşuyor
                         </span>
-                        {remoteStreams.has(user._id) && (
-                          <div className="w-16">
-                            <AudioWaveform 
-                              stream={remoteStreams.get(user._id)} 
-                              color="#ef4444"
-                              height={20}
-                            />
-                          </div>
-                        )}
+                      )}
+                    </div>
+
+                    {/* Ses Barı - Sadece konuşanlar için göster */}
+                    {talkingUsers.includes(roomUser._id) && (
+                      <div className="w-full mt-2">
+                        {user && user._id === roomUser._id && localStream ? (
+                          // Kendi ses barımız (konuşuyorsak)
+                          <AudioWaveform 
+                            audioStream={localStream}
+                            isActive={true}
+                            height={30}
+                            color="#ef4444"
+                          />
+                        ) : remoteStreams instanceof Map && remoteStreams.has(roomUser._id) ? (
+                          // Diğer kullanıcıların ses barları (konuşuyorlarsa)
+                          <AudioWaveform 
+                            audioStream={remoteStreams.get(roomUser._id)}
+                            isActive={true}
+                            height={30}
+                            color="#ef4444"
+                          />
+                        ) : null}
                       </div>
                     )}
                   </div>

@@ -10,7 +10,8 @@ const PushToTalkButton = ({
   remoteStreams,
   localStream,
   nearbyUsersCount = 0,
-  audioPermissionGranted = false
+  audioPermissionGranted = false,
+  audioEnabled = false
 }) => {
   const [isTalkingActive, setIsTalkingActive] = useState(false);
   const audioRefs = useRef(new Map());
@@ -48,7 +49,12 @@ const PushToTalkButton = ({
   // Remote stream'leri ses elementlerine bağla
   useEffect(() => {
     const handleRemoteStreams = async () => {
-      for (const [userId, stream] of remoteStreams.entries()) {
+      // remoteStreams Map veya Object olabilir, her ikisini de destekle
+      const entries = remoteStreams instanceof Map 
+        ? remoteStreams.entries() 
+        : Object.entries(remoteStreams || {});
+      
+      for (const [userId, stream] of entries) {
         let audioElement = audioRefs.current.get(userId);
         
         if (!audioElement) {
@@ -185,9 +191,21 @@ const PushToTalkButton = ({
         
         <div className="flex items-center space-x-2 text-purple-600">
           <Volume2 size={16} />
-          <span>{remoteStreams.size} aktif ses</span>
+          <span>{remoteStreams instanceof Map ? remoteStreams.size : Object.keys(remoteStreams || {}).length} aktif ses</span>
         </div>
       </div>
+
+      {/* Ses Başlatılmadı Uyarısı */}
+      {!audioEnabled && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center space-x-2 text-yellow-800">
+            <span className="text-lg">⚠️</span>
+            <span className="text-sm font-medium">
+              Konuşmak için yukarıdaki "🎤 Mikrofonu Etkinleştir" butonuna basın
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Ana Toggle butonu */}
       <div className="relative w-full max-w-sm mx-auto">
@@ -198,11 +216,11 @@ const PushToTalkButton = ({
               ? 'bg-red-500 hover:bg-red-600 scale-95 shadow-lg' 
               : 'bg-green-500 hover:bg-green-600 shadow-md hover:scale-105'
             }
-            ${!isConnected ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+            ${!isConnected || !audioEnabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
             active:scale-90 select-none
           `}
-          onClick={isConnected ? handleToggleClick : undefined}
-          disabled={!isConnected}
+          onClick={isConnected && audioEnabled ? handleToggleClick : undefined}
+          disabled={!isConnected || !audioEnabled}
         >
           {isTalkingActive || isTalking ? (
             <Mic size={32} className="text-white mx-auto" />
@@ -253,17 +271,21 @@ const PushToTalkButton = ({
       )}
 
       {/* Diğer kullanıcıların ses dalga formları */}
-      {remoteStreams.size > 0 && (
+      {((remoteStreams instanceof Map ? remoteStreams.size : Object.keys(remoteStreams || {}).length) > 0) && (
         <div className="w-full space-y-3">
           <div className="text-xs text-gray-600 font-medium">Odadaki Diğer Kullanıcılar:</div>
           <div className="space-y-3">
-            {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
+            {Array.from(remoteStreams instanceof Map ? remoteStreams.entries() : Object.entries(remoteStreams || {})).map(([userId, stream]) => {
+              // Guard against undefined userId
+              if (!userId || !stream) return null;
+              
+              return (
               <div key={userId} className="bg-green-50 rounded-lg p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Volume2 size={16} className="text-green-600" />
                     <span className="text-sm font-medium text-gray-700">
-                      Kullanıcı {userId.slice(0, 8)}
+                      Kullanıcı {String(userId).slice(0, 8)}
                     </span>
                   </div>
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -275,7 +297,7 @@ const PushToTalkButton = ({
                   height={40}
                 />
               </div>
-            ))}
+            )})}
           </div>
         </div>
       )}

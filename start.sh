@@ -86,9 +86,9 @@ if docker compose ps | grep -q "Up"; then
     sleep 2
 fi
 
-# Sadece altyapı servislerini başlat (db, redis, janus, coturn)
-echo -e "${YELLOW}   Altyapı servisleri başlatılıyor (MongoDB, Redis, Janus, TURN)...${NC}"
-docker compose up -d db redis janus coturn
+# Altyapı servislerini başlat (db, redis, coturn)
+echo -e "${YELLOW}   Altyapı servisleri başlatılıyor (MongoDB, Redis, TURN)...${NC}"
+docker compose up -d db redis coturn
 echo -e "${YELLOW}   Servislerin başlaması bekleniyor...${NC}"
 sleep 10
 
@@ -177,7 +177,7 @@ echo -e "\n${YELLOW}4. Frontend başlatılıyor...${NC}"
 gnome-terminal --tab --title="Frontend (HTTPS)" -- bash -c "
     cd frontend && 
     echo -e '${BLUE}Frontend (HTTPS) Başlatılıyor...${NC}' && 
-    HTTPS=true SSL_CRT_FILE=ssl/cert.pem SSL_KEY_FILE=ssl/key.pem PORT=3443 npm start; 
+    node start-server.js; 
     exec bash
 " &
 
@@ -188,7 +188,6 @@ echo -e "${GREEN}================================${NC}"
 echo -e "\n${BLUE}Servis Durumu:${NC}"
 echo -e "  ${GREEN}✓ MongoDB:${NC}        localhost:27017"
 echo -e "  ${GREEN}✓ Redis:${NC}          localhost:6379"
-echo -e "  ${GREEN}✓ Janus SFU:${NC}      WebSocket"
 echo -e "  ${GREEN}✓ Mediasoup SFU:${NC}  12 workers aktif"
 echo -e "  ${GREEN}✓ Backend API:${NC}    http://localhost:5000"
 echo -e "  ${GREEN}✓ Frontend:${NC}       https://localhost:3443"

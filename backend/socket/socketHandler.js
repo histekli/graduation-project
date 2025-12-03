@@ -244,13 +244,11 @@ module.exports = (io, redisLocationService) => {
 
         console.log(`🎤 ${socket.user.username} konuşmaya başladı`);
 
-        // Odadaki diğer kullanıcılara bildir
+        // Odadaki diğer kullanıcılara bildir (userId formatında)
         socket.to(roomId.toString()).emit('user_started_talking', {
-          user: {
-            _id: socket.user._id,
-            username: socket.user.username,
-            avatar: socket.user.avatar
-          }
+          userId: socket.user._id.toString(), // userId olarak gönder
+          username: socket.user.username,
+          avatar: socket.user.avatar
         });
 
       } catch (error) {
@@ -270,12 +268,10 @@ module.exports = (io, redisLocationService) => {
 
         console.log(`🔇 ${socket.user.username} konuşmayı bitirdi`);
 
-        // Odadaki diğer kullanıcılara bildir
+        // Odadaki diğer kullanıcılara bildir (userId formatında)
         socket.to(roomId.toString()).emit('user_stopped_talking', {
-          user: {
-            _id: socket.user._id,
-            username: socket.user.username
-          }
+          userId: socket.user._id.toString(), // userId olarak gönder
+          username: socket.user.username
         });
 
       } catch (error) {
@@ -303,8 +299,8 @@ module.exports = (io, redisLocationService) => {
         }
 
         // Redis'ten konum bilgisini sil
-        if (redisLocationService && redisLocationService.isConnected) {
-          await redisLocationService.removeUserLocation(socket.userId.toString());
+        if (redisLocationService && redisLocationService.isConnected && typeof redisLocationService.removeUserLocation === 'function') {
+          await redisLocationService.removeUserLocation(socket.user._id.toString());
         }
 
       } catch (error) {

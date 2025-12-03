@@ -90,6 +90,7 @@ class MediasoupManager {
     });
 
     console.log(`🚚 ${direction} transport oluşturuldu: ${peerId} (${roomId})`);
+    console.log(`🔑 Transport ID: ${transport.id}`);
     return transport;
   }
 
@@ -134,12 +135,16 @@ class MediasoupManager {
    * Create Consumer (User receives audio from another user)
    */
   async createConsumer(transportId, producerId, rtpCapabilities) {
+    console.log(`🔍 Consume isteği - transportId: ${transportId}`);
+    console.log(`🔍 Mevcut transport IDs:`, Array.from(this.transports.keys()));
+    
     const { transport, roomId, peerId } = this.transports.get(transportId) || {};
     if (!transport) {
+      console.error(`❌ Transport bulunamadı! Aranan ID: ${transportId}`);
       throw new Error('Transport bulunamadı');
     }
 
-    const { producer } = this.producers.get(producerId) || {};
+    const { producer, peerId: producerPeerId } = this.producers.get(producerId) || {};
     if (!producer) {
       throw new Error('Producer bulunamadı');
     }
@@ -162,7 +167,12 @@ class MediasoupManager {
     });
 
     console.log(`🔊 Consumer oluşturuldu: ${peerId} <- Producer ${producerId}`);
-    return consumer;
+    
+    // Return consumer with producer's peerId
+    return {
+      consumer,
+      producerPeerId // Producer'ın sahibi (kim konuşuyor)
+    };
   }
 
   /**

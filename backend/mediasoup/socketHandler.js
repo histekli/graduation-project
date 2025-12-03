@@ -6,7 +6,7 @@
 const mediasoupManager = require('../mediasoup/manager');
 
 module.exports = (io, socket) => {
-  const peerId = socket.userId.toString();
+  const peerId = socket.user._id.toString();
 
   /**
    * Get Router RTP Capabilities
@@ -76,11 +76,12 @@ module.exports = (io, socket) => {
       console.log(`🎤 Producer oluşturuldu: ${peerId} - ${kind}`);
 
       // Notify other users in room about new producer
-      socket.to(roomId).emit('newProducer', {
+      socket.to(roomId.toString()).emit('newProducer', {
         producerId: producer.id,
         peerId,
         kind,
       });
+      console.log(`📢 newProducer broadcast edildi: ${producer.id} → room ${roomId}`);
     } catch (error) {
       console.error('❌ produce hatası:', error);
       callback({ error: error.message });
@@ -92,7 +93,7 @@ module.exports = (io, socket) => {
    */
   socket.on('consume', async ({ transportId, producerId, rtpCapabilities, roomId }, callback) => {
     try {
-      const consumer = await mediasoupManager.createConsumer(
+      const { consumer, producerPeerId } = await mediasoupManager.createConsumer(
         transportId,
         producerId,
         rtpCapabilities
@@ -103,6 +104,7 @@ module.exports = (io, socket) => {
         producerId: consumer.producerId,
         kind: consumer.kind,
         rtpParameters: consumer.rtpParameters,
+        producerUserId: producerPeerId // Producer'ın sahibinin ID'si
       });
 
       console.log(`🔊 Consumer oluşturuldu: ${peerId} <- ${producerId}`);
@@ -118,8 +120,10 @@ module.exports = (io, socket) => {
   socket.on('getProducers', async ({ roomId }, callback) => {
     try {
       const producers = mediasoupManager.getProducersInRoom(roomId, peerId);
-      callback({ producers });
-      console.log(`📋 Producers listesi: ${peerId} - ${producers.length} producer`);
+      // Frontend expects 'producerIds' array - extract producerId from each object
+      const producerIds = producers.map(p => p.producerId);
+      callback({ producerIds });
+      console.log(`📋 Producers listesi: ${peerId} - ${producerIds.length} producer`);
     } catch (error) {
       console.error('❌ getProducers hatası:', error);
       callback({ error: error.message });

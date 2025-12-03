@@ -66,28 +66,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Janus WebRTC Gateway - SFU Server
-  janus:
-    image: canyan/janus-gateway:latest
-    restart: unless-stopped
-    ports:
-      - "8088:8088"     # HTTP API
-      - "8089:8089"     # HTTPS API
-      - "8188:8188"     # WebSocket
-      - "8989:8989"     # Admin API
-      - "10000-10200:10000-10200/udp"  # RTP/RTCP
-    environment:
-      - JANUS_API_SECRET=carvoice_janus_secret
-      - JANUS_ADMIN_SECRET=carvoice_janus_admin
-      - DOCKER_IP=${HOST_IP:-127.0.0.1}
-    volumes:
-      - ./janus/janus.jcfg:/opt/janus/etc/janus/janus.jcfg
-      - ./janus/janus.plugin.videoroom.jcfg:/opt/janus/etc/janus/janus.plugin.videoroom.jcfg
-    depends_on:
-      - coturn
-    networks:
-      - carvoice-network
-
   coturn:
     image: instrumentisto/coturn:latest
     restart: unless-stopped

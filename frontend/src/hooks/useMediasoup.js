@@ -24,6 +24,7 @@ const useMediasoup = (socket, roomId, userId) => {
   const producerRef = useRef(null);
   const consumersRef = useRef(new Map()); // producerId -> consumer
   const remoteStreamsRef = useRef(new Map());
+  const localStreamRef = useRef(null); // Add ref for localStream
 
   /**
    * Initialize Mediasoup Device
@@ -73,6 +74,7 @@ const useMediasoup = (socket, roomId, userId) => {
           if (response.error) {
             reject(new Error(response.error));
           } else {
+            console.log('🔍 Backend send transport ID:', response.id);
             resolve(response);
           }
         });
@@ -80,6 +82,8 @@ const useMediasoup = (socket, roomId, userId) => {
 
       // Create transport on device
       const sendTransport = deviceRef.current.createSendTransport(transportOptions);
+      console.log('🔍 Frontend send transport ID:', sendTransport.id);
+      console.log('🔍 IDs eşleşiyor mu?', sendTransport.id === transportOptions.id);
 
       // Handle 'connect' event
       sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
@@ -109,7 +113,8 @@ const useMediasoup = (socket, roomId, userId) => {
             socket.emit('produce', {
               transportId: sendTransport.id,
               kind,
-              rtpParameters
+              rtpParameters,
+              roomId // Add roomId for backend to broadcast newProducer to room
             }, (response) => {
               if (response.error) {
                 reject(new Error(response.error));
@@ -149,6 +154,7 @@ const useMediasoup = (socket, roomId, userId) => {
           if (response.error) {
             reject(new Error(response.error));
           } else {
+            console.log('🔍 Backend recv transport ID:', response.id);
             resolve(response);
           }
         });
@@ -156,6 +162,8 @@ const useMediasoup = (socket, roomId, userId) => {
 
       // Create transport on device
       const recvTransport = deviceRef.current.createRecvTransport(transportOptions);
+      console.log('🔍 Frontend recv transport ID:', recvTransport.id);
+      console.log('🔍 IDs eşleşiyor mu?', recvTransport.id === transportOptions.id);
 
       // Handle 'connect' event
       recvTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
@@ -192,6 +200,12 @@ const useMediasoup = (socket, roomId, userId) => {
    */
   const initializeAudio = useCallback(async () => {
     try {
+      // Check if already initialized
+      if (localStreamRef.current && localStreamRef.current.active) {
+        console.log('✅ Audio already initialized, reusing existing stream');
+        return localStreamRef.current;
+      }
+
       console.log('🎤 Requesting microphone permission...');
       
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -203,6 +217,7 @@ const useMediasoup = (socket, roomId, userId) => {
         video: false
       });
 
+      localStreamRef.current = stream; // Update ref
       setLocalStream(stream);
       setAudioPermissionGranted(true);
       console.log('✅ Microphone access granted');
@@ -212,18 +227,33 @@ const useMediasoup = (socket, roomId, userId) => {
       await createSendTransport();
       await createRecvTransport();
 
-      // Get existing producers in room
-      await getExistingProducers();
+      // Get existing producers in room - inline to avoid circular dependency
+      try {
+        const { producerIds } = await new Promise((resolve, reject) => {
+          socket.emit('getProducers', { roomId }, (response) => {
+            if (response.error) {
+              reject(new Error(response.error));
+            } else {
+              resolve(response);
+            }
+          });
+        });
+
+        console.log(`📡 Found ${producerIds.length} existing producers`);
+      } catch (error) {
+        console.error('❌ Failed to get existing producers:', error);
+      }
 
       return stream;
     } catch (error) {
       console.error('❌ Audio initialization failed:', error);
       throw error;
     }
-  }, [initDevice, createSendTransport, createRecvTransport]);
+  }, [initDevice, createSendTransport, createRecvTransport, socket, roomId]);
 
   /**
    * Get Existing Producers (users already talking in room)
+   * Note: Not used in initializeAudio anymore to avoid circular dependency
    */
   const getExistingProducers = useCallback(async () => {
     try {
@@ -246,7 +276,7 @@ const useMediasoup = (socket, roomId, userId) => {
     } catch (error) {
       console.error('❌ Failed to get existing producers:', error);
     }
-  }, [socket, roomId]);
+  }, [socket, roomId]); // Remove consumeAudio to avoid circular dependency
 
   /**
    * Consume Audio from a Producer
@@ -259,16 +289,22 @@ const useMediasoup = (socket, roomId, userId) => {
       }
 
       console.log(`📥 Consuming producer: ${producerId}`);
+      console.log(`🔍 Transport ID: ${recvTransportRef.current?.id}`);
+      console.log(`🔍 Transport state: ${recvTransportRef.current?.connectionState}`);
 
       // Request consumer from server
       const { id, kind, rtpParameters, producerUserId } = await new Promise((resolve, reject) => {
         socket.emit('consume', {
+          transportId: recvTransportRef.current.id, // Add transportId
           rtpCapabilities: deviceRef.current.rtpCapabilities,
-          producerId
+          producerId,
+          roomId // Add roomId
         }, (response) => {
           if (response.error) {
+            console.error(`❌ Consume response error:`, response.error);
             reject(new Error(response.error));
           } else {
+            console.log(`✅ Consume response:`, response);
             resolve(response);
           }
         });
@@ -316,22 +352,46 @@ const useMediasoup = (socket, roomId, userId) => {
    */
   const startTalking = useCallback(async () => {
     try {
-      if (!localStream || !sendTransportRef.current) {
+      const stream = localStreamRef.current;
+      const transport = sendTransportRef.current;
+      
+      console.log('🎙️ Start talking check:', {
+        hasLocalStream: !!stream,
+        hasSendTransport: !!transport,
+        hasProducer: !!producerRef.current,
+        isPaused: producerRef.current?.paused,
+        localStreamTracks: stream?.getAudioTracks().length
+      });
+
+      if (!stream || !transport) {
         console.warn('⚠️ Cannot start talking: stream or transport not ready');
         return;
       }
 
+      // If producer exists and is paused, resume it
       if (producerRef.current) {
-        console.warn('⚠️ Already producing');
+        if (producerRef.current.paused) {
+          console.log('▶️ Resuming paused producer...');
+          producerRef.current.resume();
+          setIsTalking(true);
+          console.log('✅ Producer resumed');
+        } else {
+          console.warn('⚠️ Already producing (not paused)');
+        }
         return;
       }
 
       console.log('🎙️ Starting to talk...');
 
-      const audioTrack = localStream.getAudioTracks()[0];
+      const audioTrack = stream.getAudioTracks()[0];
+      
+      if (!audioTrack) {
+        console.error('❌ No audio track found in localStream');
+        return;
+      }
       
       // Produce audio
-      const producer = await sendTransportRef.current.produce({
+      const producer = await transport.produce({
         track: audioTrack,
         codecOptions: {
           opusStereo: true,
@@ -346,7 +406,7 @@ const useMediasoup = (socket, roomId, userId) => {
     } catch (error) {
       console.error('❌ Failed to start talking:', error);
     }
-  }, [localStream]);
+  }, []); // No dependencies - use refs instead
 
   /**
    * Stop Talking (pause producer)
@@ -407,11 +467,13 @@ const useMediasoup = (socket, roomId, userId) => {
   }, [socket, consumeAudio]);
 
   /**
-   * Cleanup on unmount or room change
+   * Cleanup ONLY on component unmount (not on roomId change)
+   * React Strict Mode double-mounting was causing premature cleanup
    */
   useEffect(() => {
+    // Only cleanup on unmount
     return () => {
-      console.log('🧹 Cleaning up Mediasoup resources...');
+      console.log('🧹 Cleaning up Mediasoup resources (component unmount)...');
 
       // Close producer
       if (producerRef.current) {
@@ -433,17 +495,18 @@ const useMediasoup = (socket, roomId, userId) => {
         recvTransportRef.current = null;
       }
 
-      // Stop local stream
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
+      // Stop local stream using ref (not state) to avoid dependency issues
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(track => track.stop());
+        localStreamRef.current = null; // Clear ref
       }
 
       setLocalStream(null);
-      setRemoteStreams({});
+      setRemoteStreams(new Map());
       setIsConnected(false);
       setIsTalking(false);
     };
-  }, [localStream, roomId]);
+  }, []); // Empty deps = only run cleanup on unmount!
 
   return {
     localStream,
