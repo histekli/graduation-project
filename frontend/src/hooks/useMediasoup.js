@@ -196,6 +196,141 @@ const useMediasoup = (socket, roomId, userId) => {
   }, [socket, roomId]);
 
   /**
+   * Consume Audio from a remote producer
+   */
+  const consumeAudio = useCallback(async (producerId) => {
+    try {
+      // Check if already consuming
+      if (consumersRef.current.has(producerId)) {
+        return;
+      }
+
+      console.log(`🔄 Preparing to consume producer: ${producerId}`);
+
+      const { rtpCapabilities } = deviceRef.current;
+
+      // Request consumer details from server
+      const {
+        id,
+        kind,
+        rtpParameters
+      } = await new Promise((resolve, reject) => {
+        socket.emit('consume', {
+          transportId: recvTransportRef.current.id,
+          producerId,
+          rtpCapabilities,
+          roomId // roomId is needed for backend checks
+        }, (response) => {
+          if (response.error) {
+            reject(new Error(response.error));
+          } else {
+            resolve(response);
+          }
+        });
+      });
+
+      // Create consumer on device
+      const consumer = await recvTransportRef.current.consume({
+        id,
+        producerId,
+        kind,
+        rtpParameters
+      });
+
+      console.log('✅ Consumer created:', consumer.id);
+
+      // Store consumer
+      consumersRef.current.set(producerId, consumer);
+
+      // Extract stream and store it
+      const stream = new MediaStream();
+      stream.addTrack(consumer.track);
+
+      // Map stream to user ID - Backend should provide userId mapping ideally
+      // For now, we rely on producerId or socket events to map producer -> user
+      // But we can just update remoteStreams with producerId key for raw playback
+      setRemoteStreams(prev => {
+        const newMap = new Map(prev);
+        // We need a way to know WHICH user this is.
+        // For simplicity in this legacy refactor, we might key by producerId first
+        // Or better, backend 'newProducer' event sends { producerId, userId }
+        newMap.set(producerId, stream);
+        return newMap;
+      });
+      remoteStreamsRef.current.set(producerId, stream);
+
+      // Consumer events
+      consumer.on('transportclose', () => {
+        consumersRef.current.delete(producerId);
+      });
+
+      // Resume consumer
+      if (consumer.paused) {
+        // Consumer is created paused on server side? usually no unless specific config
+        // But mediasoup-client consumers are paused locally if transport is unknown? No.
+        // Resume just in case?
+        // socket.emit('resumeConsumer', { consumerId: consumer.id });
+      }
+
+    } catch (error) {
+      console.error('❌ Consume failed:', error);
+    }
+  }, [socket, roomId]);
+
+  /**
+   * Start Talking (Resume Producer)
+   */
+  const startTalking = useCallback(async () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach(track => track.enabled = true);
+      setIsTalking(true);
+      socket.emit('start_talking', { roomId });
+    }
+  }, [socket, roomId]);
+
+  /**
+   * Stop Talking (Pause Producer)
+   */
+  const stopTalking = useCallback(async () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach(track => track.enabled = false);
+      setIsTalking(false);
+      socket.emit('stop_talking', { roomId });
+    }
+  }, [socket, roomId]);
+
+  // Effect to listen for new producers
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewProducer = async ({ producerId, userId }) => {
+      console.log('🔔 New producer announced:', producerId, 'for user:', userId);
+      // Wait a bit for transport? No, joinAsListener handles transport creation.
+      // We just need to ensure we consume.
+      if (isConnected) {
+        await consumeAudio(producerId);
+        // After consuming, we might want to map producerId -> userId
+        if (userId) {
+          setRemoteStreams(prev => {
+            const stream = remoteStreamsRef.current.get(producerId);
+            if (stream) {
+              const newMap = new Map(prev);
+              newMap.set(userId, stream); // Map by UserID for UI
+              return newMap;
+            }
+            return prev;
+          });
+        }
+      }
+    };
+
+    socket.on('newProducer', handleNewProducer);
+    return () => {
+      socket.off('newProducer', handleNewProducer);
+    };
+  }, [socket, isConnected, consumeAudio]);
+
+  /**
     * Join as Listener (Receive Only) - No Mic Permission Needed
     */
   const joinAsListener = useCallback(async () => {
