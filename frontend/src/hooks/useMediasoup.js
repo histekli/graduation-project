@@ -32,7 +32,7 @@ const useMediasoup = (socket, roomId, userId) => {
   const initDevice = useCallback(async () => {
     try {
       console.log('🎙️ Initializing Mediasoup Device...');
-      
+
       // Get RTP capabilities from server
       const routerRtpCapabilities = await new Promise((resolve, reject) => {
         socket.emit('getRouterRtpCapabilities', { roomId }, (response) => {
@@ -67,9 +67,9 @@ const useMediasoup = (socket, roomId, userId) => {
 
       // Request transport from server
       const transportOptions = await new Promise((resolve, reject) => {
-        socket.emit('createWebRtcTransport', { 
-          roomId, 
-          direction: 'send' 
+        socket.emit('createWebRtcTransport', {
+          roomId,
+          direction: 'send'
         }, (response) => {
           if (response.error) {
             reject(new Error(response.error));
@@ -147,9 +147,9 @@ const useMediasoup = (socket, roomId, userId) => {
 
       // Request transport from server
       const transportOptions = await new Promise((resolve, reject) => {
-        socket.emit('createWebRtcTransport', { 
-          roomId, 
-          direction: 'recv' 
+        socket.emit('createWebRtcTransport', {
+          roomId,
+          direction: 'recv'
         }, (response) => {
           if (response.error) {
             reject(new Error(response.error));
@@ -196,9 +196,61 @@ const useMediasoup = (socket, roomId, userId) => {
   }, [socket, roomId]);
 
   /**
-   * Initialize Audio (request mic permission and setup stream)
+    * Join as Listener (Receive Only) - No Mic Permission Needed
+    */
+  const joinAsListener = useCallback(async () => {
+    try {
+      console.log('🎧 Joining as listener...');
+
+      // Initialize device if not ready
+      if (!deviceRef.current) {
+        await initDevice();
+      }
+
+      // Create receive transport if not ready
+      if (!recvTransportRef.current) {
+        await createRecvTransport();
+      }
+
+      // Get existing producers in room and consume them
+      try {
+        const { producerIds } = await new Promise((resolve, reject) => {
+          socket.emit('getProducers', { roomId }, (response) => {
+            if (response.error) {
+              reject(new Error(response.error));
+            } else {
+              resolve(response);
+            }
+          });
+        });
+
+        console.log(`📡 Found ${producerIds.length} existing producers`);
+
+        // Consume each existing producer
+        for (const producerId of producerIds) {
+          console.log(`🔄 Consuming existing producer: ${producerId}`);
+          await consumeAudio(producerId);
+        }
+
+        if (producerIds.length > 0) {
+          console.log(`✅ Successfully consumed ${producerIds.length} existing producers`);
+        }
+      } catch (error) {
+        console.error('❌ Failed to get/consume existing producers:', error);
+      }
+
+      setIsConnected(true);
+      return true;
+    } catch (error) {
+      console.error('❌ Join as listener failed:', error);
+      throw error;
+    }
+  }, [initDevice, createRecvTransport, socket, roomId, consumeAudio]);
+
+  /**
+   * Enable Microphone (Send Audio)
    */
-  const initializeAudio = useCallback(async () => {
+  const enableMicrophone = useCallback(async () => {
     try {
       // Check if already initialized
       if (localStreamRef.current && localStreamRef.current.active) {
@@ -207,7 +259,7 @@ const useMediasoup = (socket, roomId, userId) => {
       }
 
       console.log('🎤 Requesting microphone permission...');
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -222,291 +274,54 @@ const useMediasoup = (socket, roomId, userId) => {
       setAudioPermissionGranted(true);
       console.log('✅ Microphone access granted');
 
-      // Initialize device and transports
-      await initDevice();
-      await createSendTransport();
-      await createRecvTransport();
+      // Initialize device if not ready (might be ready from joinAsListener)
+      if (!deviceRef.current) {
+        await initDevice();
+      }
 
-      // Get existing producers in room - inline to avoid circular dependency
-      try {
-        const { producerIds } = await new Promise((resolve, reject) => {
-          socket.emit('getProducers', { roomId }, (response) => {
-            if (response.error) {
-              reject(new Error(response.error));
-            } else {
-              resolve(response);
-            }
-          });
-        });
+      // Create send transport if not ready
+      if (!sendTransportRef.current) {
+        await createSendTransport();
+      }
 
-        console.log(`📡 Found ${producerIds.length} existing producers`);
-      } catch (error) {
-        console.error('❌ Failed to get existing producers:', error);
+      // Ensure receive transport exists too (for full duplex)
+      if (!recvTransportRef.current) {
+        await createRecvTransport();
+        // Also consume if we just created recv transport
+        await joinAsListener();
       }
 
       return stream;
     } catch (error) {
-      console.error('❌ Audio initialization failed:', error);
+      console.error('❌ Enable microphone failed:', error);
       throw error;
     }
-  }, [initDevice, createSendTransport, createRecvTransport, socket, roomId]);
+  }, [initDevice, createSendTransport, createRecvTransport, joinAsListener]);
 
   /**
-   * Get Existing Producers (users already talking in room)
-   * Note: Not used in initializeAudio anymore to avoid circular dependency
+   * Initialize Audio (Legacy wrapper)
    */
-  const getExistingProducers = useCallback(async () => {
-    try {
-      const { producerIds } = await new Promise((resolve, reject) => {
-        socket.emit('getProducers', { roomId }, (response) => {
-          if (response.error) {
-            reject(new Error(response.error));
-          } else {
-            resolve(response);
-          }
-        });
-      });
+  const initializeAudio = useCallback(async () => {
+    await joinAsListener();
+    return await enableMicrophone();
+  }, [joinAsListener, enableMicrophone]);
 
-      console.log(`📡 Found ${producerIds.length} existing producers`);
+  // Latency calculation
+  const [networkLatency, setNetworkLatency] = useState(0);
 
-      // Consume each producer
-      for (const producerId of producerIds) {
-        await consumeAudio(producerId);
-      }
-    } catch (error) {
-      console.error('❌ Failed to get existing producers:', error);
-    }
-  }, [socket, roomId]); // Remove consumeAudio to avoid circular dependency
-
-  /**
-   * Consume Audio from a Producer
-   */
-  const consumeAudio = useCallback(async (producerId) => {
-    try {
-      if (!recvTransportRef.current) {
-        console.warn('⚠️ Receive transport not ready, cannot consume');
-        return;
-      }
-
-      console.log(`📥 Consuming producer: ${producerId}`);
-      console.log(`🔍 Transport ID: ${recvTransportRef.current?.id}`);
-      console.log(`🔍 Transport state: ${recvTransportRef.current?.connectionState}`);
-
-      // Request consumer from server
-      const { id, kind, rtpParameters, producerUserId } = await new Promise((resolve, reject) => {
-        socket.emit('consume', {
-          transportId: recvTransportRef.current.id, // Add transportId
-          rtpCapabilities: deviceRef.current.rtpCapabilities,
-          producerId,
-          roomId // Add roomId
-        }, (response) => {
-          if (response.error) {
-            console.error(`❌ Consume response error:`, response.error);
-            reject(new Error(response.error));
-          } else {
-            console.log(`✅ Consume response:`, response);
-            resolve(response);
-          }
-        });
-      });
-
-      // Create consumer on device
-      const consumer = await recvTransportRef.current.consume({
-        id,
-        producerId,
-        kind,
-        rtpParameters
-      });
-
-      // Resume consumer
-      await new Promise((resolve, reject) => {
-        socket.emit('resumeConsumer', { consumerId: consumer.id }, (response) => {
-          if (response.error) {
-            reject(new Error(response.error));
-          } else {
-            resolve();
-          }
-        });
-      });
-
-      // Store consumer
-      consumersRef.current.set(producerId, consumer);
-
-      // Create MediaStream for this consumer
-      const stream = new MediaStream([consumer.track]);
-      
-      // Update remote streams (using Map)
-      const newRemoteStreams = new Map(remoteStreamsRef.current);
-      newRemoteStreams.set(producerUserId, stream);
-      remoteStreamsRef.current = newRemoteStreams;
-      setRemoteStreams(newRemoteStreams);
-
-      console.log(`✅ Consumer created for user: ${producerUserId}`);
-    } catch (error) {
-      console.error(`❌ Failed to consume producer ${producerId}:`, error);
-    }
-  }, [socket]);
-
-  /**
-   * Start Talking (produce audio to server)
-   */
-  const startTalking = useCallback(async () => {
-    try {
-      const stream = localStreamRef.current;
-      const transport = sendTransportRef.current;
-      
-      console.log('🎙️ Start talking check:', {
-        hasLocalStream: !!stream,
-        hasSendTransport: !!transport,
-        hasProducer: !!producerRef.current,
-        isPaused: producerRef.current?.paused,
-        localStreamTracks: stream?.getAudioTracks().length
-      });
-
-      if (!stream || !transport) {
-        console.warn('⚠️ Cannot start talking: stream or transport not ready');
-        return;
-      }
-
-      // If producer exists and is paused, resume it
-      if (producerRef.current) {
-        if (producerRef.current.paused) {
-          console.log('▶️ Resuming paused producer...');
-          producerRef.current.resume();
-          setIsTalking(true);
-          console.log('✅ Producer resumed');
-        } else {
-          console.warn('⚠️ Already producing (not paused)');
-        }
-        return;
-      }
-
-      console.log('🎙️ Starting to talk...');
-
-      const audioTrack = stream.getAudioTracks()[0];
-      
-      if (!audioTrack) {
-        console.error('❌ No audio track found in localStream');
-        return;
-      }
-      
-      // Produce audio
-      const producer = await transport.produce({
-        track: audioTrack,
-        codecOptions: {
-          opusStereo: true,
-          opusDtx: true
-        }
-      });
-
-      producerRef.current = producer;
-      setIsTalking(true);
-
-      console.log('✅ Producer created, now talking');
-    } catch (error) {
-      console.error('❌ Failed to start talking:', error);
-    }
-  }, []); // No dependencies - use refs instead
-
-  /**
-   * Stop Talking (pause producer)
-   */
-  const stopTalking = useCallback(() => {
-    try {
-      if (!producerRef.current) {
-        console.warn('⚠️ Not producing');
-        return;
-      }
-
-      console.log('🔇 Stopping talking...');
-
-      producerRef.current.pause();
-      setIsTalking(false);
-
-      console.log('✅ Producer paused');
-    } catch (error) {
-      console.error('❌ Failed to stop talking:', error);
-    }
-  }, []);
-
-  /**
-   * Socket Event: New Producer Available
-   */
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !isConnected) return;
 
-    const handleNewProducer = ({ producerId }) => {
-      console.log(`🆕 New producer available: ${producerId}`);
-      consumeAudio(producerId);
-    };
+    const intervalId = setInterval(() => {
+      const start = Date.now();
+      socket.emit('ping', () => {
+        const latency = Date.now() - start;
+        setNetworkLatency(latency);
+      });
+    }, 2000); // Check every 2 seconds
 
-    const handleProducerClosed = ({ producerId, userId: producerUserId }) => {
-      console.log(`🚪 Producer closed: ${producerId}`);
-      
-      // Remove consumer
-      const consumer = consumersRef.current.get(producerId);
-      if (consumer) {
-        consumer.close();
-        consumersRef.current.delete(producerId);
-      }
-
-      // Remove remote stream (using Map)
-      const newRemoteStreams = new Map(remoteStreamsRef.current);
-      newRemoteStreams.delete(producerUserId);
-      remoteStreamsRef.current = newRemoteStreams;
-      setRemoteStreams(newRemoteStreams);
-    };
-
-    socket.on('newProducer', handleNewProducer);
-    socket.on('producerClosed', handleProducerClosed);
-
-    return () => {
-      socket.off('newProducer', handleNewProducer);
-      socket.off('producerClosed', handleProducerClosed);
-    };
-  }, [socket, consumeAudio]);
-
-  /**
-   * Cleanup ONLY on component unmount (not on roomId change)
-   * React Strict Mode double-mounting was causing premature cleanup
-   */
-  useEffect(() => {
-    // Only cleanup on unmount
-    return () => {
-      console.log('🧹 Cleaning up Mediasoup resources (component unmount)...');
-
-      // Close producer
-      if (producerRef.current) {
-        producerRef.current.close();
-        producerRef.current = null;
-      }
-
-      // Close all consumers
-      consumersRef.current.forEach(consumer => consumer.close());
-      consumersRef.current.clear();
-
-      // Close transports
-      if (sendTransportRef.current) {
-        sendTransportRef.current.close();
-        sendTransportRef.current = null;
-      }
-      if (recvTransportRef.current) {
-        recvTransportRef.current.close();
-        recvTransportRef.current = null;
-      }
-
-      // Stop local stream using ref (not state) to avoid dependency issues
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(track => track.stop());
-        localStreamRef.current = null; // Clear ref
-      }
-
-      setLocalStream(null);
-      setRemoteStreams(new Map());
-      setIsConnected(false);
-      setIsTalking(false);
-    };
-  }, []); // Empty deps = only run cleanup on unmount!
+    return () => clearInterval(intervalId);
+  }, [socket, isConnected]);
 
   return {
     localStream,
@@ -514,9 +329,12 @@ const useMediasoup = (socket, roomId, userId) => {
     isConnected,
     isTalking,
     audioPermissionGranted,
+    enableMicrophone,
+    joinAsListener,
     initializeAudio,
     startTalking,
-    stopTalking
+    stopTalking,
+    networkLatency
   };
 };
 

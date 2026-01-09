@@ -136,7 +136,7 @@ gnome-terminal --tab --title="Backend Server (SFU)" -- bash -c "
     echo -e '${GREEN}🎙️  SFU Architecture (Mediasoup)${NC}' &&
     echo -e '${YELLOW}MongoDB bağlantısı bekleniyor...${NC}' &&
     sleep 3 &&
-    npm start; 
+    MEDIASOUP_ANNOUNCED_IP=$NETWORK_IP npm start; 
     exec bash
 " &
 
@@ -150,11 +150,11 @@ sleep 10
 # Backend sağlık kontrolü
 echo -e "${YELLOW}   Backend health check...${NC}"
 for i in {1..30}; do
-    if curl -s http://localhost:5000/health > /dev/null 2>&1; then
+    if curl -s -k https://localhost:3443/health > /dev/null 2>&1; then
         echo -e "${GREEN}✓ Backend başarıyla başladı${NC}"
         
         # Mediasoup kontrolü
-        if curl -s http://localhost:5000/health | grep -q "mediasoup" 2>/dev/null; then
+        if curl -s -k https://localhost:3443/health | grep -q "mediasoup" 2>/dev/null; then
             echo -e "${GREEN}✓ Mediasoup SFU aktif${NC}"
         fi
         break
@@ -172,14 +172,10 @@ for i in {1..30}; do
     sleep 1
 done
 
-# Frontend'i yeni terminalde başlat
-echo -e "\n${YELLOW}4. Frontend başlatılıyor...${NC}"
-gnome-terminal --tab --title="Frontend (HTTPS)" -- bash -c "
-    cd frontend && 
-    echo -e '${BLUE}Frontend (HTTPS) Başlatılıyor...${NC}' && 
-    node start-server.js; 
-    exec bash
-" &
+# Frontend - Production build kullanılıyor (backend tarafından servis edilecek)
+echo -e "\n${YELLOW}4. Frontend - Production build hazır${NC}"
+echo -e "${GREEN}✓ Frontend production build backend tarafından servis edilecek${NC}"
+# Frontend development server başlatılmıyor - backend static files servis ediyor
 
 echo -e "\n${GREEN}================================${NC}"
 echo -e "${GREEN}  Tüm Servisler Başlatıldı!${NC}"
@@ -189,13 +185,13 @@ echo -e "\n${BLUE}Servis Durumu:${NC}"
 echo -e "  ${GREEN}✓ MongoDB:${NC}        localhost:27017"
 echo -e "  ${GREEN}✓ Redis:${NC}          localhost:6379"
 echo -e "  ${GREEN}✓ Mediasoup SFU:${NC}  12 workers aktif"
-echo -e "  ${GREEN}✓ Backend API:${NC}    http://localhost:5000"
-echo -e "  ${GREEN}✓ Frontend:${NC}       https://localhost:3443"
+echo -e "  ${GREEN}✓ Backend (HTTPS):${NC} https://localhost:3443"
+echo -e "  ${GREEN}✓ Frontend:${NC}       https://localhost:3443 (Production Build)"
 
 echo -e "\n${BLUE}Erişim Adresleri:${NC}"
 echo -e "  ${GREEN}Localhost:${NC}     https://localhost:3443"
 echo -e "  ${GREEN}Ağ İçi:${NC}        https://${NETWORK_IP}:3443"
-echo -e "  ${GREEN}Backend API:${NC}   http://localhost:5000"
+echo -e "\n${YELLOW}Not:${NC} Tek port (3443) üzerinden hem backend hem frontend servis ediliyor"
 
 echo -e "\n${BLUE}Mimari Bilgileri:${NC}"
 echo -e "  ${YELLOW}WebRTC Mode:${NC}   SFU (Selective Forwarding Unit)"

@@ -286,7 +286,14 @@ router.get('/:roomId/messages', authenticateToken, async (req, res) => {
     
     const room = await Room.findById(roomId);
     
-    if (!room || !room.hasUser(req.userId)) {
+    if (!room) {
+      return res.status(404).json({
+        error: 'Oda bulunamadı'
+      });
+    }
+    
+    // Sadece private odalarda user kontrolü yap
+    if (!room.isPublic && !room.hasUser(req.userId) && room.creator.toString() !== req.userId) {
       return res.status(403).json({
         error: 'Bu odanın mesajlarını görme izniniz yok'
       });

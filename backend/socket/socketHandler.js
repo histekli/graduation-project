@@ -42,7 +42,7 @@ module.exports = (io, redisLocationService) => {
     socket.on('join_room', async (data) => {
       try {
         const { roomId } = data;
-        
+
         if (!roomId) {
           return socket.emit('error', { message: 'Room ID gerekli' });
         }
@@ -73,7 +73,7 @@ module.exports = (io, redisLocationService) => {
 
         // Oda bilgilerini al
         const room = await Room.findById(roomId).populate('users.user', 'username avatar isOnline');
-        
+
         if (!room) {
           return socket.emit('error', { message: 'Oda bulunamadı' });
         }
@@ -119,7 +119,7 @@ module.exports = (io, redisLocationService) => {
     socket.on('leave_room', async (data) => {
       try {
         const { roomId } = data;
-        
+
         if (!roomId) {
           return socket.emit('error', { message: 'Room ID gerekli' });
         }
@@ -127,7 +127,7 @@ module.exports = (io, redisLocationService) => {
         console.log(`🚪 ${socket.user.username} odadan ayrılıyor: ${roomId}`);
 
         socket.leave(roomId.toString());
-        
+
         // Kullanıcıyı odadan çıkar
         socket.user.currentRoom = null;
         await socket.user.save();
@@ -237,7 +237,7 @@ module.exports = (io, redisLocationService) => {
     socket.on('start_talking', async (data) => {
       try {
         const { roomId } = data;
-        
+
         if (!roomId) {
           return socket.emit('error', { message: 'Room ID gerekli' });
         }
@@ -261,7 +261,7 @@ module.exports = (io, redisLocationService) => {
     socket.on('stop_talking', async (data) => {
       try {
         const { roomId } = data;
-        
+
         if (!roomId) {
           return socket.emit('error', { message: 'Room ID gerekli' });
         }
@@ -305,6 +305,13 @@ module.exports = (io, redisLocationService) => {
 
       } catch (error) {
         console.error('❌ Disconnect hatası:', error);
+      }
+    });
+
+    // Ping/Pong for latency check
+    socket.on('ping', (callback) => {
+      if (typeof callback === 'function') {
+        callback();
       }
     });
 

@@ -1,10 +1,13 @@
 const express = require('express');
+const https = require('https');
 const http = require('http');
+const fs = require('fs');
 const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -19,10 +22,27 @@ const RedisLocationService = require('./services/redisLocationService');
 const mediasoupManager = require('./mediasoup/manager');
 
 const app = express();
-const server = http.createServer(app);
+
+// HTTPS için SSL sertifikaları
+let server;
+const sslPath = path.join(__dirname, '../ssl');
+const sslCertPath = path.join(sslPath, 'cert.pem');
+const sslKeyPath = path.join(sslPath, 'key.pem');
+
+if (fs.existsSync(sslCertPath) && fs.existsSync(sslKeyPath) && process.env.DISABLE_SSL !== 'true') {
+  const httpsOptions = {
+    key: fs.readFileSync(sslKeyPath),
+    cert: fs.readFileSync(sslCertPath)
+  };
+  server = https.createServer(httpsOptions, app);
+  console.log('🔒 HTTPS server oluşturuldu');
+} else {
+  server = http.createServer(app);
+  console.log('⚠️  HTTP server oluşturuldu (SSL sertifikaları bulunamadı)');
+}
 
 // Redis Location Service başlat
-// Redis Location Service başlat
+
 let redisLocationService;
 try {
   redisLocationService = new RedisLocationService();
@@ -56,6 +76,19 @@ const io = socketIo(server, {
 
 // Middleware
 app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: ["'self'", "wss:", "ws:", "https:", "http:"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'", "blob:"],
+      frameSrc: ["'none'"]
+    }
+  },
   crossOriginEmbedderPolicy: false // WebRTC için gerekli
 }));
 app.use(morgan('combined'));
@@ -96,10 +129,10 @@ mongoose.connect(MONGODB_URI, {
     }
   });
 
-// Routes
-app.use('/auth', authRoutes);
-app.use('/rooms', roomRoutes);
-app.use('/users', userRoutes);
+// Routes - /api prefix ile
+app.use('/api/auth', authRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -111,8 +144,11 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Ana route
-app.get('/', (req, res) => {
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+// Ana route - API info
+app.get('/api', (req, res) => {
   res.json({
     message: 'WebRTC Car Voice GeoTalk API - Mediasoup SFU',
     version: '2.0.0',
@@ -147,11 +183,11 @@ app.get('/api/sfu/status', (req, res) => {
 app.get('/locations/nearby', async (req, res) => {
   try {
     const { lat, lng, radius = 10 } = req.query;
-    
+
     if (!lat || !lng) {
       return res.status(400).json({ error: 'Latitude ve longitude gerekli' });
     }
-    
+
     if (redisLocationService && redisLocationService.isConnected) {
       const nearbyUsers = await redisLocationService.findNearbyUsers(
         parseFloat(lat),
@@ -192,15 +228,13 @@ app.use((error, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    message: 'Route not found',
-    path: req.originalUrl
-  });
+// Catch-all route - serve React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3443;
+const PROTOCOL = server instanceof https.Server ? 'https' : 'http';
 
 // Initialize Mediasoup workers before starting server
 (async () => {
@@ -208,11 +242,12 @@ const PORT = process.env.PORT || 5000;
     console.log('⚙️ Mediasoup workers başlatılıyor...');
     await mediasoupManager.init();
     console.log('✅ Mediasoup workers hazır');
-    
+
     server.listen(PORT, () => {
-      console.log(`🚀 Sunucu http://localhost:${PORT} adresinde çalışıyor`);
+      console.log(`🚀 Sunucu ${PROTOCOL}://localhost:${PORT} adresinde çalışıyor`);
       console.log(`🌍 Ortam: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🎙️ SFU (Mediasoup) aktif`);
+      console.log(`🔒 Protokol: ${PROTOCOL.toUpperCase()}`);
     });
   } catch (error) {
     console.error('❌ Mediasoup başlatılamadı:', error);
@@ -248,7 +283,7 @@ process.on('SIGINT', () => {
   console.log('SIGINT signal received');
   server.close(() => {
     console.log('Server closed');
-    
+
     // Redis Service'i kapat
     if (redisLocationService) {
       redisLocationService.close().catch(console.error);

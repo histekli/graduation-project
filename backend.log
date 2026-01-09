@@ -1,0 +1,461 @@
+🔒 HTTPS server oluşturuldu
+🔴 Redis Location Service başlatılıyor...
+🔴 Redis Location Service başlatıldı
+✅ Socket.IO handlers initialized with Mediasoup SFU
+⚙️ Mediasoup workers başlatılıyor...
+🚀 Mediasoup başlatılıyor: 12 worker...
+🔴 Redis bağlantısı kuruluyor...
+✅ MongoDB bağlantısı başarılı
+✅ Worker 1 oluşturuldu (PID: 88884)
+✅ Redis hazır
+✅ Redis Location Service başarıyla başlatıldı
+✅ Worker 2 oluşturuldu (PID: 88888)
+✅ Worker 3 oluşturuldu (PID: 88894)
+✅ Worker 4 oluşturuldu (PID: 88897)
+✅ Worker 5 oluşturuldu (PID: 88900)
+✅ Worker 6 oluşturuldu (PID: 88903)
+✅ Worker 7 oluşturuldu (PID: 88906)
+✅ Worker 8 oluşturuldu (PID: 88909)
+✅ Worker 9 oluşturuldu (PID: 88912)
+✅ Worker 10 oluşturuldu (PID: 88915)
+✅ Worker 11 oluşturuldu (PID: 88918)
+✅ Worker 12 oluşturuldu (PID: 88921)
+✅ Mediasoup hazır!
+✅ Mediasoup workers hazır
+🚀 Sunucu https://localhost:3443 adresinde çalışıyor
+🌍 Ortam: production
+🎙️ SFU (Mediasoup) aktif
+🔒 Protokol: HTTPS
+::ffff:127.0.0.1 - - [03/Dec/2025:09:11:18 +0000] "GET /health HTTP/1.1" 200 103 "-" "curl/7.81.0"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:10 +0000] "POST /api/rooms/692ffaaaf52523b93fd3865a/leave HTTP/1.1" 409 32 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:10 +0000] "GET /api/users/online HTTP/1.1" 200 500 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:10 +0000] "GET /api/rooms/public HTTP/1.1" 200 2611 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:10 +0000] "GET /favicon.ico HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:12 +0000] "GET / HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:12 +0000] "GET /static/css/main.210dec6d.css HTTP/1.1" 200 49029 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:13 +0000] "GET /static/js/main.f1592c67.js HTTP/1.1" 200 780937 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:15 +0000] "POST /api/auth/verify HTTP/1.1" 200 407 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:16 +0000] "GET /api/rooms/public HTTP/1.1" 200 2611 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:16 +0000] "GET /api/users/online HTTP/1.1" 200 258 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+✅ Kullanıcı bağlandı: canc (6M3H5cz2hX3K4XsVAAAB)
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:16 +0000] "GET /favicon.ico HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:17 +0000] "GET /api/rooms/692ffe5b70801dd6fca1c0fc HTTP/1.1" 200 821 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:17 +0000] "POST /api/rooms/692ffe5b70801dd6fca1c0fc/join HTTP/1.1" 200 961 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:17 +0000] "GET /favicon.ico HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+📍 canc odaya katılıyor: 692ffe5b70801dd6fca1c0fc
+✅ canc odaya katıldı: Oda
+::ffff:10.1.243.219 - - [03/Dec/2025:09:12:17 +0000] "GET /api/rooms/692ffe5b70801dd6fca1c0fc/messages HTTP/1.1" 200 31 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+📡 Router oluşturuldu: 692ffe5b70801dd6fca1c0fc
+📡 RTP capabilities gönderildi: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🚚 send transport oluşturuldu: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 5c82f237-4e85-4821-a268-d6280c152d67
+🚚 Transport oluşturuldu: send - 692ec4318ffc12d6d1afcffe
+🚚 recv transport oluşturuldu: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 1da43e36-2c28-4249-a350-e7027e30e583
+🚚 Transport oluşturuldu: recv - 692ec4318ffc12d6d1afcffe
+📋 Producers listesi: 692ec4318ffc12d6d1afcffe - 0 producer
+::ffff:10.1.235.242 - - [03/Dec/2025:09:12:23 +0000] "GET /voice/692ffe5b70801dd6fca1c0fc HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+::ffff:10.1.235.242 - - [03/Dec/2025:09:12:23 +0000] "GET /static/js/main.f1592c67.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+::ffff:10.1.235.242 - - [03/Dec/2025:09:12:23 +0000] "GET /static/css/main.210dec6d.css HTTP/1.1" 200 49029 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+::ffff:10.1.235.242 - - [03/Dec/2025:09:12:23 +0000] "POST /api/auth/verify HTTP/1.1" 200 425 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+✅ Kullanıcı bağlandı: test2user (h9RtXYLh1SYG-1q2AAAD)
+📡 RTP capabilities gönderildi: 68ef8254d442eab6352c89b5 (692ffe5b70801dd6fca1c0fc)
+🚚 send transport oluşturuldu: 68ef8254d442eab6352c89b5 (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 40c942f0-4fe9-476b-a109-3f383304b85a
+🚚 Transport oluşturuldu: send - 68ef8254d442eab6352c89b5
+🚚 recv transport oluşturuldu: 68ef8254d442eab6352c89b5 (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 87898c4f-d4c9-42ac-b934-7e76dac5d433
+🚚 Transport oluşturuldu: recv - 68ef8254d442eab6352c89b5
+📋 Producers listesi: 68ef8254d442eab6352c89b5 - 0 producer
+🎤 canc konuşmaya başladı
+✅ Transport bağlandı: 5c82f237-4e85-4821-a268-d6280c152d67
+✅ Transport bağlandı: 5c82f237-4e85-4821-a268-d6280c152d67
+🎤 Producer oluşturuldu: 692ec4318ffc12d6d1afcffe (audio)
+🎤 Producer oluşturuldu: 692ec4318ffc12d6d1afcffe - audio
+📢 newProducer broadcast edildi: d7ba5c27-b380-481a-9cfa-0e5dcc27e8d0 → room 692ffe5b70801dd6fca1c0fc
+🎤 test2user konuşmaya başladı
+✅ Transport bağlandı: 40c942f0-4fe9-476b-a109-3f383304b85a
+✅ Transport bağlandı: 40c942f0-4fe9-476b-a109-3f383304b85a
+🎤 Producer oluşturuldu: 68ef8254d442eab6352c89b5 (audio)
+🎤 Producer oluşturuldu: 68ef8254d442eab6352c89b5 - audio
+📢 newProducer broadcast edildi: fc649b94-7283-45c6-aa6b-998f9e125820 → room 692ffe5b70801dd6fca1c0fc
+🔍 Consume isteği - transportId: 1da43e36-2c28-4249-a350-e7027e30e583
+🔍 Mevcut transport IDs: [
+  '5c82f237-4e85-4821-a268-d6280c152d67',
+  '1da43e36-2c28-4249-a350-e7027e30e583',
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433'
+]
+🔊 Consumer oluşturuldu: 692ec4318ffc12d6d1afcffe <- Producer fc649b94-7283-45c6-aa6b-998f9e125820
+🔊 Consumer oluşturuldu: 692ec4318ffc12d6d1afcffe <- fc649b94-7283-45c6-aa6b-998f9e125820
+✅ Transport bağlandı: 1da43e36-2c28-4249-a350-e7027e30e583
+✅ Transport bağlandı: 1da43e36-2c28-4249-a350-e7027e30e583
+▶️ Consumer resumed: 2b03b0bc-6479-4351-9b16-c00e49164c41
+🎤 canc konuşmaya başladı
+🎤 test2user konuşmaya başladı
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:07 +0000] "GET / HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:07 +0000] "GET /manifest.json HTTP/1.1" 200 321 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:07 +0000] "GET /static/css/main.210dec6d.css HTTP/1.1" 200 49029 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:08 +0000] "GET /static/js/main.f1592c67.js HTTP/1.1" 200 780937 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:20 +0000] "GET / HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:20 +0000] "GET /manifest.json HTTP/1.1" 200 321 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:26 +0000] "GET / HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:26 +0000] "GET /manifest.json HTTP/1.1" 200 321 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:26 +0000] "GET /static/css/main.210dec6d.css HTTP/1.1" 200 49029 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:26 +0000] "GET /static/js/main.f1592c67.js HTTP/1.1" 200 780937 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+🎤 test2user konuşmaya başladı
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:53 +0000] "POST /api/auth/login HTTP/1.1" 200 610 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+✅ Kullanıcı bağlandı: tata (APUtWoO27op6xeWzAAAF)
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:54 +0000] "GET /api/users/online HTTP/1.1" 200 543 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:13:54 +0000] "GET /api/rooms/public HTTP/1.1" 200 2825 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.235.242 - - [03/Dec/2025:09:13:57 +0000] "GET /voice/692ffe5b70801dd6fca1c0fc HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+🔌 Kullanıcı bağlantısı koptu: 68ef8254d442eab6352c89b5
+❌ Kullanıcı bağlantısı kesildi: test2user
+::ffff:10.1.235.242 - - [03/Dec/2025:09:13:57 +0000] "GET /static/css/main.210dec6d.css HTTP/1.1" 200 49029 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+::ffff:10.1.235.242 - - [03/Dec/2025:09:13:57 +0000] "GET /static/js/main.f1592c67.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+::ffff:10.1.235.242 - - [03/Dec/2025:09:13:58 +0000] "POST /api/auth/verify HTTP/1.1" 200 426 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+✅ Kullanıcı bağlandı: test2user (HGibI0wP7VcEzALOAAAH)
+📍 test2user odaya katılıyor: 692ffe5b70801dd6fca1c0fc
+✅ test2user odaya katıldı: Oda
+::ffff:10.1.235.242 - - [03/Dec/2025:09:13:58 +0000] "GET /api/rooms/692ffe5b70801dd6fca1c0fc/messages HTTP/1.1" 200 31 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:13:58 +0000] "GET /voice/692ffe5b70801dd6fca1c0fc HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+🔌 Kullanıcı bağlantısı koptu: 692ec4318ffc12d6d1afcffe
+🧹 Peer temizleniyor: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+✅ Peer temizlendi: 692ec4318ffc12d6d1afcffe
+❌ Kullanıcı bağlantısı kesildi: canc
+::ffff:10.1.243.219 - - [03/Dec/2025:09:13:59 +0000] "GET /static/css/main.210dec6d.css HTTP/1.1" 200 49029 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:13:59 +0000] "GET /static/js/main.f1592c67.js HTTP/1.1" 200 780937 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:13:59 +0000] "POST /api/auth/verify HTTP/1.1" 200 429 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+✅ Kullanıcı bağlandı: canc (8ClTqM45NLAfQfarAAAJ)
+::ffff:10.1.243.219 - - [03/Dec/2025:09:13:59 +0000] "GET /favicon.ico HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+::ffff:10.1.243.205 - - [03/Dec/2025:09:14:01 +0000] "GET /api/rooms/692ffe5b70801dd6fca1c0fc HTTP/1.1" 200 1153 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+::ffff:10.1.243.205 - - [03/Dec/2025:09:14:01 +0000] "POST /api/rooms/692ffe5b70801dd6fca1c0fc/join HTTP/1.1" 200 1175 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+📍 tata odaya katılıyor: 692ffe5b70801dd6fca1c0fc
+✅ tata odaya katıldı: Oda
+::ffff:10.1.243.205 - - [03/Dec/2025:09:14:01 +0000] "GET /api/rooms/692ffe5b70801dd6fca1c0fc/messages HTTP/1.1" 200 31 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+📡 RTP capabilities gönderildi: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🚚 send transport oluşturuldu: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: e9a059fa-5a40-4b10-8aa3-ce07b738d3ae
+🚚 Transport oluşturuldu: send - 692ec4318ffc12d6d1afcffe
+🚚 recv transport oluşturuldu: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 9141d6bb-19c5-4006-b80d-2dce3aa049f7
+🚚 Transport oluşturuldu: recv - 692ec4318ffc12d6d1afcffe
+📋 Producers listesi: 692ec4318ffc12d6d1afcffe - 1 producer
+📡 RTP capabilities gönderildi: 68ef8254d442eab6352c89b5 (692ffe5b70801dd6fca1c0fc)
+🚚 send transport oluşturuldu: 68ef8254d442eab6352c89b5 (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 249fa548-65aa-4448-a9cb-491dc096a3bd
+🚚 Transport oluşturuldu: send - 68ef8254d442eab6352c89b5
+🚚 recv transport oluşturuldu: 68ef8254d442eab6352c89b5 (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 79b7e9d2-00bb-45be-8428-5ff05bc90d57
+🚚 Transport oluşturuldu: recv - 68ef8254d442eab6352c89b5
+📋 Producers listesi: 68ef8254d442eab6352c89b5 - 0 producer
+📡 RTP capabilities gönderildi: 692fe91c0f3afccf269f2593 (692ffe5b70801dd6fca1c0fc)
+🚚 send transport oluşturuldu: 692fe91c0f3afccf269f2593 (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: cd6c1173-21c2-4948-824e-c024332155cc
+🚚 Transport oluşturuldu: send - 692fe91c0f3afccf269f2593
+🚚 recv transport oluşturuldu: 692fe91c0f3afccf269f2593 (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 1ab4346f-f85c-426b-922e-6e6f31fb21fe
+🚚 Transport oluşturuldu: recv - 692fe91c0f3afccf269f2593
+📋 Producers listesi: 692fe91c0f3afccf269f2593 - 1 producer
+🎤 tata konuşmaya başladı
+✅ Transport bağlandı: cd6c1173-21c2-4948-824e-c024332155cc
+✅ Transport bağlandı: cd6c1173-21c2-4948-824e-c024332155cc
+🎤 Producer oluşturuldu: 692fe91c0f3afccf269f2593 (audio)
+🎤 Producer oluşturuldu: 692fe91c0f3afccf269f2593 - audio
+📢 newProducer broadcast edildi: 29a149ea-e208-4417-850c-cdaf5cb64085 → room 692ffe5b70801dd6fca1c0fc
+🔍 Consume isteği - transportId: 9141d6bb-19c5-4006-b80d-2dce3aa049f7
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  'e9a059fa-5a40-4b10-8aa3-ce07b738d3ae',
+  '9141d6bb-19c5-4006-b80d-2dce3aa049f7',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe'
+]
+🔊 Consumer oluşturuldu: 692ec4318ffc12d6d1afcffe <- Producer 29a149ea-e208-4417-850c-cdaf5cb64085
+🔊 Consumer oluşturuldu: 692ec4318ffc12d6d1afcffe <- 29a149ea-e208-4417-850c-cdaf5cb64085
+✅ Transport bağlandı: 9141d6bb-19c5-4006-b80d-2dce3aa049f7
+✅ Transport bağlandı: 9141d6bb-19c5-4006-b80d-2dce3aa049f7
+▶️ Consumer resumed: e1ed9019-6c08-4136-89a6-9f7b4888f0c3
+🔍 Consume isteği - transportId: 79b7e9d2-00bb-45be-8428-5ff05bc90d57
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  'e9a059fa-5a40-4b10-8aa3-ce07b738d3ae',
+  '9141d6bb-19c5-4006-b80d-2dce3aa049f7',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe'
+]
+🔊 Consumer oluşturuldu: 68ef8254d442eab6352c89b5 <- Producer 29a149ea-e208-4417-850c-cdaf5cb64085
+🔊 Consumer oluşturuldu: 68ef8254d442eab6352c89b5 <- 29a149ea-e208-4417-850c-cdaf5cb64085
+✅ Transport bağlandı: 79b7e9d2-00bb-45be-8428-5ff05bc90d57
+✅ Transport bağlandı: 79b7e9d2-00bb-45be-8428-5ff05bc90d57
+▶️ Consumer resumed: a6e186d7-6c26-4118-b264-90ea6e5ac847
+🎤 canc konuşmaya başladı
+✅ Transport bağlandı: e9a059fa-5a40-4b10-8aa3-ce07b738d3ae
+✅ Transport bağlandı: e9a059fa-5a40-4b10-8aa3-ce07b738d3ae
+🎤 Producer oluşturuldu: 692ec4318ffc12d6d1afcffe (audio)
+🎤 Producer oluşturuldu: 692ec4318ffc12d6d1afcffe - audio
+📢 newProducer broadcast edildi: 753789e4-1fcf-4c1f-bcc4-3d119ff5b86e → room 692ffe5b70801dd6fca1c0fc
+🔍 Consume isteği - transportId: 1ab4346f-f85c-426b-922e-6e6f31fb21fe
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  'e9a059fa-5a40-4b10-8aa3-ce07b738d3ae',
+  '9141d6bb-19c5-4006-b80d-2dce3aa049f7',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe'
+]
+🔍 Consume isteği - transportId: 79b7e9d2-00bb-45be-8428-5ff05bc90d57
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  'e9a059fa-5a40-4b10-8aa3-ce07b738d3ae',
+  '9141d6bb-19c5-4006-b80d-2dce3aa049f7',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe'
+]
+🔊 Consumer oluşturuldu: 692fe91c0f3afccf269f2593 <- Producer 753789e4-1fcf-4c1f-bcc4-3d119ff5b86e
+🔊 Consumer oluşturuldu: 68ef8254d442eab6352c89b5 <- Producer 753789e4-1fcf-4c1f-bcc4-3d119ff5b86e
+🔊 Consumer oluşturuldu: 692fe91c0f3afccf269f2593 <- 753789e4-1fcf-4c1f-bcc4-3d119ff5b86e
+🔊 Consumer oluşturuldu: 68ef8254d442eab6352c89b5 <- 753789e4-1fcf-4c1f-bcc4-3d119ff5b86e
+✅ Transport bağlandı: 1ab4346f-f85c-426b-922e-6e6f31fb21fe
+▶️ Consumer resumed: 251d8b68-d5d7-486c-8eb6-0badab414a50
+✅ Transport bağlandı: 1ab4346f-f85c-426b-922e-6e6f31fb21fe
+▶️ Consumer resumed: 890e2fd7-1dcd-45ee-9c07-e6a2736dbd01
+🎤 test2user konuşmaya başladı
+✅ Transport bağlandı: 249fa548-65aa-4448-a9cb-491dc096a3bd
+✅ Transport bağlandı: 249fa548-65aa-4448-a9cb-491dc096a3bd
+🎤 Producer oluşturuldu: 68ef8254d442eab6352c89b5 (audio)
+🎤 Producer oluşturuldu: 68ef8254d442eab6352c89b5 - audio
+📢 newProducer broadcast edildi: 3c7a0097-663f-43d0-a5b4-0763871bc68b → room 692ffe5b70801dd6fca1c0fc
+🔍 Consume isteği - transportId: 9141d6bb-19c5-4006-b80d-2dce3aa049f7
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  'e9a059fa-5a40-4b10-8aa3-ce07b738d3ae',
+  '9141d6bb-19c5-4006-b80d-2dce3aa049f7',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe'
+]
+🔊 Consumer oluşturuldu: 692ec4318ffc12d6d1afcffe <- Producer 3c7a0097-663f-43d0-a5b4-0763871bc68b
+🔊 Consumer oluşturuldu: 692ec4318ffc12d6d1afcffe <- 3c7a0097-663f-43d0-a5b4-0763871bc68b
+🔍 Consume isteği - transportId: 1ab4346f-f85c-426b-922e-6e6f31fb21fe
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  'e9a059fa-5a40-4b10-8aa3-ce07b738d3ae',
+  '9141d6bb-19c5-4006-b80d-2dce3aa049f7',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe'
+]
+🔊 Consumer oluşturuldu: 692fe91c0f3afccf269f2593 <- Producer 3c7a0097-663f-43d0-a5b4-0763871bc68b
+🔊 Consumer oluşturuldu: 692fe91c0f3afccf269f2593 <- 3c7a0097-663f-43d0-a5b4-0763871bc68b
+▶️ Consumer resumed: 5865a27a-7032-4507-8d71-44ed5db02c81
+▶️ Consumer resumed: d8455dba-8410-4de4-bcb1-34a6e277bbaa
+🎤 test2user konuşmaya başladı
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+🎤 tata konuşmaya başladı
+🎤 tata konuşmaya başladı
+🎤 tata konuşmaya başladı
+🎤 tata konuşmaya başladı
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+🎤 tata konuşmaya başladı
+🎤 tata konuşmaya başladı
+🎤 tata konuşmaya başladı
+🎤 tata konuşmaya başladı
+🎤 tata konuşmaya başladı
+🎤 tata konuşmaya başladı
+🎤 tata konuşmaya başladı
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+🎤 test2user konuşmaya başladı
+🎤 test2user konuşmaya başladı
+🎤 tata konuşmaya başladı
+🎤 test2user konuşmaya başladı
+🎤 test2user konuşmaya başladı
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+::ffff:10.1.243.219 - - [03/Dec/2025:09:17:27 +0000] "GET /voice/692ffe5b70801dd6fca1c0fc HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+🔌 Kullanıcı bağlantısı koptu: 692ec4318ffc12d6d1afcffe
+🧹 Peer temizleniyor: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+✅ Peer temizlendi: 692ec4318ffc12d6d1afcffe
+❌ Kullanıcı bağlantısı kesildi: canc
+::ffff:10.1.243.219 - - [03/Dec/2025:09:17:27 +0000] "GET /static/css/main.210dec6d.css HTTP/1.1" 200 49029 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:17:27 +0000] "GET /static/js/main.f1592c67.js HTTP/1.1" 200 780937 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:17:28 +0000] "POST /api/auth/verify HTTP/1.1" 200 429 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:17:28 +0000] "GET /favicon.ico HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+✅ Kullanıcı bağlandı: canc (mWBHkNxtkFsPQ64zAAAL)
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+🎤 tata konuşmaya başladı
+📡 RTP capabilities gönderildi: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🚚 send transport oluşturuldu: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 1d4c0cbd-c941-4cbd-8fba-dba8c76a3e98
+🚚 Transport oluşturuldu: send - 692ec4318ffc12d6d1afcffe
+🚚 recv transport oluşturuldu: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: fc5e253b-e6de-4c4e-a994-9aff3a351294
+🚚 Transport oluşturuldu: recv - 692ec4318ffc12d6d1afcffe
+📋 Producers listesi: 692ec4318ffc12d6d1afcffe - 3 producer
+🎤 canc konuşmaya başladı
+✅ Transport bağlandı: 1d4c0cbd-c941-4cbd-8fba-dba8c76a3e98
+✅ Transport bağlandı: 1d4c0cbd-c941-4cbd-8fba-dba8c76a3e98
+🎤 Producer oluşturuldu: 692ec4318ffc12d6d1afcffe (audio)
+🎤 Producer oluşturuldu: 692ec4318ffc12d6d1afcffe - audio
+📢 newProducer broadcast edildi: bb22b921-1a26-4864-bea6-41c02b5c34c9 → room 692ffe5b70801dd6fca1c0fc
+🔍 Consume isteği - transportId: 1ab4346f-f85c-426b-922e-6e6f31fb21fe
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe',
+  '1d4c0cbd-c941-4cbd-8fba-dba8c76a3e98',
+  'fc5e253b-e6de-4c4e-a994-9aff3a351294'
+]
+🔊 Consumer oluşturuldu: 692fe91c0f3afccf269f2593 <- Producer bb22b921-1a26-4864-bea6-41c02b5c34c9
+🔊 Consumer oluşturuldu: 692fe91c0f3afccf269f2593 <- bb22b921-1a26-4864-bea6-41c02b5c34c9
+▶️ Consumer resumed: 6e4e2623-6a86-496c-9d5a-247129db3b60
+🔍 Consume isteği - transportId: 79b7e9d2-00bb-45be-8428-5ff05bc90d57
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe',
+  '1d4c0cbd-c941-4cbd-8fba-dba8c76a3e98',
+  'fc5e253b-e6de-4c4e-a994-9aff3a351294'
+]
+🔊 Consumer oluşturuldu: 68ef8254d442eab6352c89b5 <- Producer bb22b921-1a26-4864-bea6-41c02b5c34c9
+🔊 Consumer oluşturuldu: 68ef8254d442eab6352c89b5 <- bb22b921-1a26-4864-bea6-41c02b5c34c9
+▶️ Consumer resumed: 4309cc7a-697d-4573-b7ec-eb65e4733d0e
+🎤 canc konuşmaya başladı
+🎤 canc konuşmaya başladı
+🎤 tata konuşmaya başladı
+::ffff:10.1.243.219 - - [03/Dec/2025:09:18:05 +0000] "GET /voice/692ffe5b70801dd6fca1c0fc HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+🔌 Kullanıcı bağlantısı koptu: 692ec4318ffc12d6d1afcffe
+🧹 Peer temizleniyor: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+✅ Peer temizlendi: 692ec4318ffc12d6d1afcffe
+❌ Kullanıcı bağlantısı kesildi: canc
+::ffff:10.1.243.219 - - [03/Dec/2025:09:18:05 +0000] "GET /static/css/main.210dec6d.css HTTP/1.1" 200 49029 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:18:05 +0000] "GET /static/js/main.f1592c67.js HTTP/1.1" 200 780937 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:18:05 +0000] "POST /api/auth/verify HTTP/1.1" 200 429 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+::ffff:10.1.243.219 - - [03/Dec/2025:09:18:05 +0000] "GET /favicon.ico HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+✅ Kullanıcı bağlandı: canc (UJ22Eo7PuUNYPsTsAAAN)
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+📡 RTP capabilities gönderildi: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🚚 send transport oluşturuldu: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: fa0b365a-2d6c-4d6c-8453-ff1928981c5d
+🚚 Transport oluşturuldu: send - 692ec4318ffc12d6d1afcffe
+🚚 recv transport oluşturuldu: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+🔑 Transport ID: 39f21386-76b1-4b46-a8ca-fc275f574646
+🚚 Transport oluşturuldu: recv - 692ec4318ffc12d6d1afcffe
+📋 Producers listesi: 692ec4318ffc12d6d1afcffe - 3 producer
+🎤 canc konuşmaya başladı
+✅ Transport bağlandı: fa0b365a-2d6c-4d6c-8453-ff1928981c5d
+✅ Transport bağlandı: fa0b365a-2d6c-4d6c-8453-ff1928981c5d
+🎤 Producer oluşturuldu: 692ec4318ffc12d6d1afcffe (audio)
+🎤 Producer oluşturuldu: 692ec4318ffc12d6d1afcffe - audio
+📢 newProducer broadcast edildi: 79411b65-bc89-4ccb-8ecd-733a0c9b8947 → room 692ffe5b70801dd6fca1c0fc
+🔍 Consume isteği - transportId: 1ab4346f-f85c-426b-922e-6e6f31fb21fe
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe',
+  'fa0b365a-2d6c-4d6c-8453-ff1928981c5d',
+  '39f21386-76b1-4b46-a8ca-fc275f574646'
+]
+🔊 Consumer oluşturuldu: 692fe91c0f3afccf269f2593 <- Producer 79411b65-bc89-4ccb-8ecd-733a0c9b8947
+🔊 Consumer oluşturuldu: 692fe91c0f3afccf269f2593 <- 79411b65-bc89-4ccb-8ecd-733a0c9b8947
+▶️ Consumer resumed: 54252f90-83ee-48ce-b15e-67f6decfba0c
+🔍 Consume isteği - transportId: 79b7e9d2-00bb-45be-8428-5ff05bc90d57
+🔍 Mevcut transport IDs: [
+  '40c942f0-4fe9-476b-a109-3f383304b85a',
+  '87898c4f-d4c9-42ac-b934-7e76dac5d433',
+  '249fa548-65aa-4448-a9cb-491dc096a3bd',
+  '79b7e9d2-00bb-45be-8428-5ff05bc90d57',
+  'cd6c1173-21c2-4948-824e-c024332155cc',
+  '1ab4346f-f85c-426b-922e-6e6f31fb21fe',
+  'fa0b365a-2d6c-4d6c-8453-ff1928981c5d',
+  '39f21386-76b1-4b46-a8ca-fc275f574646'
+]
+🔊 Consumer oluşturuldu: 68ef8254d442eab6352c89b5 <- Producer 79411b65-bc89-4ccb-8ecd-733a0c9b8947
+🔊 Consumer oluşturuldu: 68ef8254d442eab6352c89b5 <- 79411b65-bc89-4ccb-8ecd-733a0c9b8947
+▶️ Consumer resumed: d5a42281-614e-4b21-baef-679f1de93cbd
+🔌 Kullanıcı bağlantısı koptu: 692fe91c0f3afccf269f2593
+🧹 Peer temizleniyor: 692fe91c0f3afccf269f2593 (692ffe5b70801dd6fca1c0fc)
+✅ Peer temizlendi: 692fe91c0f3afccf269f2593
+❌ Kullanıcı bağlantısı kesildi: tata
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+🔌 Kullanıcı bağlantısı koptu: 68ef8254d442eab6352c89b5
+🧹 Peer temizleniyor: 68ef8254d442eab6352c89b5 (692ffe5b70801dd6fca1c0fc)
+✅ Peer temizlendi: 68ef8254d442eab6352c89b5
+❌ Kullanıcı bağlantısı kesildi: test2user
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+✅ Kullanıcı bağlandı: test2user (8ygDqqH1LE-kiUL1AAAP)
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+🚪 test2user odadan ayrılıyor: 692ffe5b70801dd6fca1c0fc
+✅ test2user odadan ayrıldı: 692ffe5b70801dd6fca1c0fc
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+📍 test2user odaya katılıyor: 692ffe5b70801dd6fca1c0fc
+✅ test2user odaya katıldı: Oda
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+🔌 Kullanıcı bağlantısı koptu: 68ef8254d442eab6352c89b5
+🧹 Peer temizleniyor: 68ef8254d442eab6352c89b5 (692ffe5b70801dd6fca1c0fc)
+✅ Peer temizlendi: 68ef8254d442eab6352c89b5
+❌ Kullanıcı bağlantısı kesildi: test2user
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+✅ Kullanıcı bağlandı: test2user (S0gibfPqXjwCnANFAAAR)
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+🚪 test2user odadan ayrılıyor: 692ffe5b70801dd6fca1c0fc
+✅ test2user odadan ayrıldı: 692ffe5b70801dd6fca1c0fc
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+📍 test2user odaya katılıyor: 692ffe5b70801dd6fca1c0fc
+✅ test2user odaya katıldı: Oda
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+::ffff:10.1.235.242 - - [03/Dec/2025:09:39:20 +0000] "GET /voice/692ffe5b70801dd6fca1c0fc HTTP/1.1" 200 1250 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+🔌 Kullanıcı bağlantısı koptu: 68ef8254d442eab6352c89b5
+🧹 Peer temizleniyor: 68ef8254d442eab6352c89b5 (692ffe5b70801dd6fca1c0fc)
+✅ Peer temizlendi: 68ef8254d442eab6352c89b5
+❌ Kullanıcı bağlantısı kesildi: test2user
+::ffff:10.1.235.242 - - [03/Dec/2025:09:39:20 +0000] "GET /static/js/main.f1592c67.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+::ffff:10.1.235.242 - - [03/Dec/2025:09:39:20 +0000] "GET /static/css/main.210dec6d.css HTTP/1.1" 200 49029 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+::ffff:10.1.235.242 - - [03/Dec/2025:09:39:21 +0000] "POST /api/auth/verify HTTP/1.1" 200 448 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+✅ Kullanıcı bağlandı: test2user (KklgH5hV8IUvHw3NAAAT)
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+⚠️ test2user zaten odada: 692ffe5b70801dd6fca1c0fc
+🚪 test2user odadan ayrılıyor: 692ffe5b70801dd6fca1c0fc
+✅ test2user odadan ayrıldı: 692ffe5b70801dd6fca1c0fc
+::ffff:10.1.235.242 - - [03/Dec/2025:09:39:35 +0000] "POST /api/rooms/692ffe5b70801dd6fca1c0fc/leave HTTP/1.1" 401 27 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+::ffff:10.1.235.242 - - [03/Dec/2025:09:39:35 +0000] "GET /api/users/online HTTP/1.1" 200 543 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+::ffff:10.1.235.242 - - [03/Dec/2025:09:39:35 +0000] "GET /api/rooms/public HTTP/1.1" 200 3040 "-" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+⚠️ canc zaten odada: 692ffe5b70801dd6fca1c0fc
+🔌 Kullanıcı bağlantısı koptu: 68ef8254d442eab6352c89b5
+❌ Kullanıcı bağlantısı kesildi: test2user
+✅ Kullanıcı bağlandı: test2user (eFxE15SU0OctFs96AAAV)
+🔌 Kullanıcı bağlantısı koptu: 68ef8254d442eab6352c89b5
+❌ Kullanıcı bağlantısı kesildi: test2user
+🔌 Kullanıcı bağlantısı koptu: 692ec4318ffc12d6d1afcffe
+🧹 Peer temizleniyor: 692ec4318ffc12d6d1afcffe (692ffe5b70801dd6fca1c0fc)
+✅ Peer temizlendi: 692ec4318ffc12d6d1afcffe
+❌ Kullanıcı bağlantısı kesildi: canc
+🗑️ Router silindi: 692ffe5b70801dd6fca1c0fc

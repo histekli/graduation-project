@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: carvoice-app
+    restart: always
+    ports:
+      - "443:3443" # Expose HTTPS on standard 443
+      - "40000-40200:40000-40200/udp" # Mediasoup Media Ports (Reduced range for performance)
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://db:27017/carvoice
+      - REDIS_URL=redis://:carvoice_redis_prod@redis:6379
+      - JWT_SECRET=${JWT_SECRET:-super_secret_jwt_key_change_me}
+      - MEDIASOUP_MIN_PORT=40000
+      - MEDIASOUP_MAX_PORT=40200
+      - MEDIASOUP_LISTEN_IP=0.0.0.0
+      # IMPORTANT: If behind NAT (AWS/DigitalOcean), set this to Public IP
+      - MEDIASOUP_ANNOUNCED_IP=${PUBLIC_IP:-127.0.0.1}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - carvoice-network
+
+  db:
+    image: mongo:6.0
+    container_name: carvoice-db
+    restart: always
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - carvoice-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: carvoice-redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass carvoice_redis_prod
+    volumes:
+      - redis_data:/data
+    networks:
+      - carvoice-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+
+networks:
+  carvoice-network:
+    driver: bridge
