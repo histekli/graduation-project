@@ -998,6 +998,7 @@ const VoiceChat = () => {
         />
       )}
       {/* Audio Playback Elements - INVISIBLE */}
+      {/* Audio Playback Elements - INVISIBLE */}
       {Array.from(remoteStreams).map(([userId, stream]) => {
         // Only render if stream is active and has tracks
         if (stream && stream.active && stream.getAudioTracks().length > 0) {
@@ -1005,9 +1006,22 @@ const VoiceChat = () => {
             <audio
               key={userId}
               ref={el => {
-                if (el && el.srcObject !== stream) {
-                  el.srcObject = stream;
-                  el.play().catch(e => console.error(`❌ Audio play failed for ${userId}:`, e));
+                if (el) {
+                  if (el.srcObject !== stream) {
+                    el.srcObject = stream;
+                  }
+                  // Attempt to play immediately
+                  el.play().catch(e => {
+                    console.warn(`⚠️ Autoplay prevented for ${userId}, waiting for interaction:`, e);
+                    // Add a one-time click listener to document to retry play
+                    const retryPlay = () => {
+                      el.play().catch(err => console.error('❌ Retry play failed:', err));
+                      document.removeEventListener('click', retryPlay);
+                      document.removeEventListener('touchstart', retryPlay);
+                    };
+                    document.addEventListener('click', retryPlay);
+                    document.addEventListener('touchstart', retryPlay);
+                  });
                 }
               }}
               autoPlay
