@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip make g++ && rm -rf 
 # Setup Backend
 WORKDIR /app/backend
 COPY backend/package*.json ./
+ENV MAKEFLAGS="-j1"
 RUN npm install --production
 
 # Copy backend source
