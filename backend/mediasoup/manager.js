@@ -20,7 +20,7 @@ class MediasoupManager {
    * Initialize Mediasoup Workers
    */
   async init() {
-    const numWorkers = Object.keys(require('os').cpus()).length;
+    const numWorkers = process.env.MEDIASOUP_WORKERS ? parseInt(process.env.MEDIASOUP_WORKERS) : 1; // Default to 1 for stability
     console.log(`🚀 Mediasoup başlatılıyor: ${numWorkers} worker...`);
 
     for (let i = 0; i < numWorkers; i++) {
@@ -137,7 +137,7 @@ class MediasoupManager {
   async createConsumer(transportId, producerId, rtpCapabilities) {
     console.log(`🔍 Consume isteği - transportId: ${transportId}`);
     console.log(`🔍 Mevcut transport IDs:`, Array.from(this.transports.keys()));
-    
+
     const { transport, roomId, peerId } = this.transports.get(transportId) || {};
     if (!transport) {
       console.error(`❌ Transport bulunamadı! Aranan ID: ${transportId}`);
@@ -167,7 +167,7 @@ class MediasoupManager {
     });
 
     console.log(`🔊 Consumer oluşturuldu: ${peerId} <- Producer ${producerId}`);
-    
+
     // Return consumer with producer's peerId
     return {
       consumer,
