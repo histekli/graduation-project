@@ -13,12 +13,12 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Setup Backend and Serve
-FROM node:18-bullseye-slim
+FROM node:16-bullseye
 # Using bullseye for python/build tools compatibility (mediasoup)
 WORKDIR /app
 
 # Install build dependencies for mediasoup
-RUN apt-get update && apt-get install -y python3 python3-pip python3-dev make g++ && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y python3 python3-pip python3-dev make g++ net-tools && rm -rf /var/lib/apt/lists/*
 
 # Setup Backend
 WORKDIR /app/backend
