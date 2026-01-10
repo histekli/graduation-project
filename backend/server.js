@@ -240,24 +240,21 @@ const PROTOCOL = server instanceof https.Server ? 'https' : 'http';
 (async () => {
   try {
     console.log('⚙️ Mediasoup workers başlatılıyor...');
+
     try {
       await mediasoupManager.init();
       console.log('✅ Mediasoup workers hazır');
     } catch (err) {
-      console.error('❌ Mediasoup Init Error:', err);
-      // Do NOT exit, maybe we can run in limited mode or try again?
-      // For now, let's exit to restart container
-    } catch (err) {
       console.error('❌ Mediasoup Init Error (Non-fatal, starting server anyway):', err);
-      // throw err; // Allow server to start even if Mediasoup fails
     }
 
     server.listen(PORT, () => {
       console.log(`🚀 Sunucu ${PROTOCOL}://localhost:${PORT} adresinde çalışıyor`);
       console.log(`🌍 Ortam: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🎙️ SFU (Mediasoup): ${mediasoupManager.workers.length > 0 ? 'Aktif' : 'Pasif (Hata)'}`);
+      console.log(`🎙️ SFU (Mediasoup): ${mediasoupManager.workers && mediasoupManager.workers.length > 0 ? 'Aktif' : 'Pasif (Hata)'}`);
       console.log(`🔒 Protokol: ${PROTOCOL.toUpperCase()}`);
     });
+
   } catch (error) {
     console.error('❌ Kritik Sunucu Hatası:', error);
     process.exit(1);
