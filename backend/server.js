@@ -240,8 +240,15 @@ const PROTOCOL = server instanceof https.Server ? 'https' : 'http';
 (async () => {
   try {
     console.log('⚙️ Mediasoup workers başlatılıyor...');
-    await mediasoupManager.init();
-    console.log('✅ Mediasoup workers hazır');
+    try {
+      await mediasoupManager.init();
+      console.log('✅ Mediasoup workers hazır');
+    } catch (err) {
+      console.error('❌ Mediasoup Init Error:', err);
+      // Do NOT exit, maybe we can run in limited mode or try again?
+      // For now, let's exit to restart container
+      throw err;
+    }
 
     server.listen(PORT, () => {
       console.log(`🚀 Sunucu ${PROTOCOL}://localhost:${PORT} adresinde çalışıyor`);

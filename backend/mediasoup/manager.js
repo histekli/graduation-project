@@ -28,7 +28,7 @@ class MediasoupManager {
 
       worker.on('died', () => {
         console.error('❌ Mediasoup worker öldü! Exit:', worker.pid);
-        process.exit(1);
+        // process.exit(1); // Do not crash the app, try to survive
       });
 
       this.workers.push(worker);
