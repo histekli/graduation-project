@@ -91,6 +91,14 @@ const VoiceChat = () => {
       return () => clearTimeout(timer);
     }
   }, [socket, roomId, isConnected, joinAsListener]);
+  // Sync audioEnabled state with hook state
+  useEffect(() => {
+    if (localStream && audioPermissionGranted) {
+      console.log('🎤 Ses izni ve akışı tespit edildi, arayüz güncelleniyor.');
+      setAudioEnabled(true);
+    }
+  }, [localStream, audioPermissionGranted]);
+
   const {
     position,
     error: locationError,
@@ -329,6 +337,13 @@ const VoiceChat = () => {
       socket.on('user_stopped_talking', handleUserStoppedTalking);
 
       socket.on('error', handleRoomError);
+
+      // Auth Hatası - Token geçersizse çıkış yap
+      socket.on('auth_error', () => {
+        console.error('❌ Socket Auth Hatası - Oturum kapatılıyor');
+        localStorage.removeItem('carvoice_token');
+        window.location.href = '/login';
+      });
 
       console.log('✅ Socket event listeners attached successfully');
 

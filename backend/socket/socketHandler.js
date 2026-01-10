@@ -47,11 +47,10 @@ module.exports = (io, redisLocationService) => {
           return socket.emit('error', { message: 'Room ID gerekli' });
         }
 
-        // Zaten aynı odadaysak işlem yapma (duplicate event guard)
-        if (socket.user.currentRoom && socket.user.currentRoom.toString() === roomId.toString()) {
-          console.log(`⚠️ ${socket.user.username} zaten odada: ${roomId}`);
-          return;
-        }
+        // Zaten aynı odadaysak bile socket'i odaya dahil et (Reconnect senaryosu)
+        // if (socket.user.currentRoom && socket.user.currentRoom.toString() === roomId.toString()) {
+        //   console.log(`ℹ️ ${socket.user.username} zaten odada, socket odası güncelleniyor: ${roomId}`);
+        // }
 
         console.log(`📍 ${socket.user.username} odaya katılıyor: ${roomId}`);
 
