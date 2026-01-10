@@ -18,7 +18,7 @@ FROM node:18-bullseye-slim
 WORKDIR /app
 
 # Install build dependencies for mediasoup
-RUN apt-get update && apt-get install -y python3 python3-pip make g++ && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y python3 python3-pip python3-dev make g++ && rm -rf /var/lib/apt/lists/*
 
 # Setup Backend
 WORKDIR /app/backend
@@ -40,4 +40,4 @@ ENV NODE_ENV=production
 EXPOSE 3443
 
 # Start server
-CMD ["npm", "start"]
+CMD ["sh", "-c", "node -v && npm start"]
