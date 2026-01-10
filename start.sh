@@ -124,9 +124,13 @@ done
 # Docker servislerinin durumunu göster
 docker compose ps
 
-# Network IP'sini al
-NETWORK_IP=$(hostname -I | awk '{print $1}')
-echo -e "\n${BLUE}Network IP: ${NETWORK_IP}${NC}"
+# Network IP'sini al (Varsa PUBLIC_IP kullan, yoksa hostname'den bul)
+if [ -z "$PUBLIC_IP" ]; then
+    NETWORK_IP=$(hostname -I | awk '{print $1}')
+else
+    NETWORK_IP=$PUBLIC_IP
+fi
+echo -e "\n${BLUE}Network IP (Announced): ${NETWORK_IP}${NC}"
 
 # Backend'i yeni terminalde başlat
 echo -e "\n${YELLOW}3. Backend başlatılıyor (SFU - Mediasoup)...${NC}"

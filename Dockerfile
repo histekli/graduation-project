@@ -18,7 +18,8 @@ FROM node:16-bullseye
 WORKDIR /app
 
 # Install build dependencies for mediasoup
-RUN apt-get update && apt-get install -y python3 python3-pip python3-dev make g++ net-tools && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y python3 python3-pip python3-dev build-essential net-tools && rm -rf /var/lib/apt/lists/*
+ENV PYTHON=/usr/bin/python3
 
 # Setup Backend
 WORKDIR /app/backend
