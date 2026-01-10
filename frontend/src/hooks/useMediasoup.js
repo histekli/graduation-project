@@ -349,26 +349,50 @@ const useMediasoup = (socket, roomId, userId) => {
 
       // Get existing producers in room and consume them
       try {
-        const { producerIds } = await new Promise((resolve, reject) => {
+        // Backend returns an array of objects: { producerId, peerId } ideally
+        // But current implementation might just return producerIds string array
+        // Let's modify frontend to handle both or request more info
+        const { producers } = await new Promise((resolve, reject) => {
           socket.emit('getProducers', { roomId }, (response) => {
             if (response.error) {
               reject(new Error(response.error));
             } else {
-              resolve(response);
+              // Backward compatibility: response.producerIds
+              // New format: response.producers = [{producerId, peerId}, ...]
+              if (response.producerIds) {
+                // Convert old string array to object array
+                resolve({ producers: response.producerIds.map(id => ({ producerId: id, peerId: null })) });
+              } else {
+                resolve(response);
+              }
             }
           });
         });
 
-        console.log(`📡 Found ${producerIds.length} existing producers`);
+        console.log(`📡 Found ${producers.length} existing producers`);
 
         // Consume each existing producer
-        for (const producerId of producerIds) {
-          console.log(`🔄 Consuming existing producer: ${producerId}`);
+        for (const p of producers) {
+          const { producerId, peerId } = p;
+          console.log(`🔄 Consuming existing producer: ${producerId} (User: ${peerId})`);
           await consumeAudio(producerId);
+
+          if (peerId) {
+            // Map producer to user immediately if we have peerId
+            setRemoteStreams(prev => {
+              const stream = remoteStreamsRef.current.get(producerId);
+              if (stream) {
+                const newMap = new Map(prev);
+                newMap.set(peerId, stream);
+                return newMap;
+              }
+              return prev;
+            });
+          }
         }
 
-        if (producerIds.length > 0) {
-          console.log(`✅ Successfully consumed ${producerIds.length} existing producers`);
+        if (producers.length > 0) {
+          console.log(`✅ Successfully consumed ${producers.length} existing producers`);
         }
       } catch (error) {
         console.error('❌ Failed to get/consume existing producers:', error);

@@ -122,7 +122,8 @@ module.exports = (io, socket) => {
       const producers = mediasoupManager.getProducersInRoom(roomId, peerId);
       // Frontend expects 'producerIds' array - extract producerId from each object
       const producerIds = producers.map(p => p.producerId);
-      callback({ producerIds });
+      // Return both formats for compatibility
+      callback({ producerIds, producers });
       console.log(`📋 Producers listesi: ${peerId} - ${producerIds.length} producer`);
     } catch (error) {
       console.error('❌ getProducers hatası:', error);
@@ -152,7 +153,7 @@ module.exports = (io, socket) => {
    */
   socket.on('disconnect', async () => {
     console.log(`🔌 Kullanıcı bağlantısı koptu: ${peerId}`);
-    
+
     // Cleanup all mediasoup resources for this peer
     if (socket.user.currentRoom) {
       const roomId = socket.user.currentRoom.toString();
