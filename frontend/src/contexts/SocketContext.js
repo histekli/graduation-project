@@ -309,10 +309,11 @@ export const SocketProvider = ({ children }) => {
         toast.error(data.message || 'Bir hata oluştu');
       });
 
+      // No cleanup - socket stays alive across navigations
+      // Only disconnects when user/token changes (which triggers new useEffect)
       return () => {
-        // Only disconnect when user/token actually changes, not on every unmount
-        console.log('🔌 Socket cleanup - disconnecting due to user/token change');
-        newSocket.disconnect();
+        console.log('🔌 Socket cleanup - keeping connection alive');
+        // Don't disconnect - will reconnect with same socket on remount
       };
 
     } else if (state.socket) {
