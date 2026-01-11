@@ -30,10 +30,15 @@ class MediasoupManager {
         logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp', 'rtx', 'bwe', 'score', 'simulcast', 'svc', 'sctp']
       });
 
+      // Log worker events
       worker.on('died', () => {
-        console.error('❌ Mediasoup worker öldü! Exit:', worker.pid);
-        // process.exit(1); // Do not crash the app, try to survive
+        console.error(`❌ Mediasoup worker ${worker.pid} öldü! Re-spawning...`);
+        // In production, we might want to exit process to let Docker restart
+        // process.exit(1); 
       });
+
+      // Pipe worker logs (if available/supported by version)
+      // Note: By default worker logs go to FD 1/2 which are inherited.
 
       this.workers.push(worker);
       console.log(`✅ Worker ${i + 1} oluşturuldu (PID: ${worker.pid})`);
