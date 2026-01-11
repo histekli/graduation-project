@@ -67,8 +67,8 @@ module.exports = (io, redisLocationService) => {
 
         // Yeni odaya katıl
         socket.join(roomId.toString());
-        socket.user.currentRoom = roomId;
-        await socket.user.save();
+        await User.findByIdAndUpdate(socket.user._id, { currentRoom: roomId });
+        socket.user.currentRoom = roomId; // Update local socket user object for immediate use
 
         // Oda bilgilerini al
         const room = await Room.findById(roomId).populate('users.user', 'username avatar isOnline');
@@ -147,8 +147,8 @@ module.exports = (io, redisLocationService) => {
         socket.leave(roomId.toString());
 
         // Kullanıcıyı odadan çıkar
+        await User.findByIdAndUpdate(socket.user._id, { currentRoom: null });
         socket.user.currentRoom = null;
-        await socket.user.save();
 
         // Diğer kullanıcılara bildir
         socket.to(roomId.toString()).emit('user_left', {

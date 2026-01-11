@@ -321,11 +321,24 @@ const useMediasoup = (socket, roomId, userId) => {
 
     const handleNewProducer = async ({ producerId, userId }) => {
       console.log('🔔 New producer announced:', producerId, 'for user:', userId);
-      // Wait a bit for transport? No, joinAsListener handles transport creation.
-      // We just need to ensure we consume.
-      if (isConnected) {
+
+      try {
+        // Ensure device is initialized
+        if (!deviceRef.current) {
+          console.log('⚠️ Device not initialized, initializing now...');
+          await initDevice();
+        }
+
+        // Ensure receive transport exists
+        if (!recvTransportRef.current) {
+          console.log('⚠️ Recv transport missing, creating now...');
+          await createRecvTransport();
+        }
+
+        // Consume the audio
         await consumeAudio(producerId);
-        // After consuming, we might want to map producerId -> userId
+
+        // Update UI with User ID mapping
         if (userId) {
           setRemoteStreams(prev => {
             const stream = remoteStreamsRef.current.get(producerId);
@@ -337,6 +350,8 @@ const useMediasoup = (socket, roomId, userId) => {
             return prev;
           });
         }
+      } catch (error) {
+        console.error('❌ Failed to handle new producer:', error);
       }
     };
 
@@ -344,7 +359,7 @@ const useMediasoup = (socket, roomId, userId) => {
     return () => {
       socket.off('newProducer', handleNewProducer);
     };
-  }, [socket, isConnected, consumeAudio]);
+  }, [socket, consumeAudio, initDevice, createRecvTransport]);
 
   /**
     * Join as Listener (Receive Only) - No Mic Permission Needed
