@@ -18,18 +18,19 @@ FROM node:16-bullseye
 WORKDIR /app
 
 # Install build dependencies for mediasoup
-RUN apt-get update && apt-get install -y python3 python3-pip python3-dev build-essential net-tools && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip python3-dev \
+    build-essential net-tools iproute2 \
+    && rm -rf /var/lib/apt/lists/*
 ENV PYTHON=/usr/bin/python3
-# Ensure Mediasoup finds the worker binary
-# mediasoup 3.12+ builds worker in node_modules/mediasoup/worker/out/Release/mediasoup-worker
-# We do not strictly need to set this if installation is correct, but can help debugging
-# ENV MEDIASOUP_WORKER_BIN="/app/backend/node_modules/mediasoup/worker/out/Release/mediasoup-worker"
 
 # Setup Backend
 WORKDIR /app/backend
 COPY backend/package*.json ./
 
-RUN npm install --production
+# Install dependencies and force build mediasoup worker
+RUN npm install
+RUN npm rebuild mediasoup --build-from-source
 
 # Copy backend source
 COPY backend/ .
