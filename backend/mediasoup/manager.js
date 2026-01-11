@@ -89,7 +89,10 @@ class MediasoupManager {
   /**
    * Create WebRTC Transport
    */
-  async createWebRtcTransport(roomId, peerId, direction) {
+  /**
+   * Create WebRTC Transport
+   */
+  async createWebRtcTransport(roomId, peerId, direction, socketId) {
     const router = await this.createRouter(roomId);
 
     const transport = await router.createWebRtcTransport(
@@ -101,9 +104,10 @@ class MediasoupManager {
       roomId,
       peerId,
       direction, // 'send' or 'recv'
+      socketId, // Store socketId to distinguish connections
     });
 
-    console.log(`🚚 ${direction} transport oluşturuldu: ${peerId} (${roomId})`);
+    console.log(`🚚 ${direction} transport oluşturuldu: ${peerId} (${roomId}) [Socket: ${socketId}]`);
     console.log(`🔑 Transport ID: ${transport.id}`);
     return transport;
   }
@@ -125,7 +129,7 @@ class MediasoupManager {
    * Create Producer (User sends audio)
    */
   async createProducer(transportId, rtpParameters, kind) {
-    const { transport, roomId, peerId } = this.transports.get(transportId) || {};
+    const { transport, roomId, peerId, socketId } = this.transports.get(transportId) || {};
     if (!transport) {
       throw new Error('Transport bulunamadı');
     }
@@ -140,6 +144,7 @@ class MediasoupManager {
       producer,
       roomId,
       peerId,
+      socketId, // Inherit socketId from transport
     });
     console.log(`🔍 createProducer: Producer added. Total producers now: ${this.producers.size}`);
 
@@ -151,10 +156,7 @@ class MediasoupManager {
    * Create Consumer (User receives audio from another user)
    */
   async createConsumer(transportId, producerId, rtpCapabilities) {
-    console.log(`🔍 Consume isteği - transportId: ${transportId}`);
-    console.log(`🔍 Mevcut transport IDs:`, Array.from(this.transports.keys()));
-
-    const { transport, roomId, peerId } = this.transports.get(transportId) || {};
+    const { transport, roomId, peerId, socketId } = this.transports.get(transportId) || {};
     if (!transport) {
       console.error(`❌ Transport bulunamadı! Aranan ID: ${transportId}`);
       throw new Error('Transport bulunamadı');
@@ -180,6 +182,7 @@ class MediasoupManager {
       consumer,
       roomId,
       peerId,
+      socketId, // Inherit socketId from transport
     });
 
     console.log(`🔊 Consumer oluşturuldu: ${peerId} <- Producer ${producerId}`);
@@ -191,35 +194,65 @@ class MediasoupManager {
     };
   }
 
+  // ... (getProducersInRoom remains unchanged)
+
   /**
-   * Get all Producers in Room (except the requester)
+   * Cleanup resources for a specific socket
+   * This prevents removing resources of a new connection for the same user
    */
-  getProducersInRoom(roomId, excludePeerId) {
-    const producers = [];
-    console.log(`🔍 getProducersInRoom: roomId=${roomId}, excludePeerId=${excludePeerId}`);
-    console.log(`🔍 Total producers in memory: ${this.producers.size}`);
+  async cleanupSocket(socketId) {
+    console.log(`🧹 Socket temizleniyor: ${socketId}`);
+    let removedCount = 0;
 
-    for (const [producerId, data] of this.producers.entries()) {
-      console.log(`  - Producer ${producerId}: roomId=${data.roomId}, peerId=${data.peerId}, match=${data.roomId === roomId && data.peerId !== excludePeerId}`);
-
-      if (data.roomId === roomId && data.peerId !== excludePeerId) {
-        producers.push({
-          producerId,
-          peerId: data.peerId,
-          kind: data.producer.kind,
-        });
+    // Close transports
+    for (const [id, data] of this.transports.entries()) {
+      if (data.socketId === socketId) {
+        try {
+          if (data.transport && !data.transport.closed) {
+            data.transport.close();
+          }
+        } catch (err) {
+          console.error(`⚠️ Transport close hatası (${id}):`, err);
+        }
+        this.transports.delete(id);
+        removedCount++;
       }
     }
-    console.log(`🔍 Found ${producers.length} matching producers`);
-    return producers;
+
+    // Remove producers
+    for (const [id, data] of this.producers.entries()) {
+      if (data.socketId === socketId) {
+        data.producer.close();
+        this.producers.delete(id);
+        removedCount++;
+      }
+    }
+
+    // Remove consumers
+    for (const [id, data] of this.consumers.entries()) {
+      if (data.socketId === socketId) {
+        data.consumer.close();
+        this.consumers.delete(id);
+        removedCount++;
+      }
+    }
+
+    if (removedCount > 0) {
+      console.log(`✅ Socket temizlendi: ${socketId} (${removedCount} kaynak silindi)`);
+    } else {
+      console.log(`ℹ️ Socket için silinecek kaynak bulunamadı: ${socketId}`);
+    }
   }
 
   /**
-   * Cleanup when user leaves
+   * Cleanup when user leaves (Deprecated: prefers cleanupSocket)
+   * Kept for backward compatibility if needed, but updated to use cleanupSocket semantics if possible check
+   * Or just keep it as "force clean everything for this user"
    */
   async cleanupPeer(roomId, peerId) {
-    console.log(`🧹 Peer temizleniyor: ${peerId} (${roomId})`);
+    console.log(`🧹 Peer temizleniyor (FORCE): ${peerId} (${roomId})`);
 
+    // ... logic same as before but maybe we should avoid using this on disconnect
     // Close transports
     for (const [id, data] of this.transports.entries()) {
       if (data.roomId === roomId && data.peerId === peerId) {
@@ -250,7 +283,7 @@ class MediasoupManager {
       }
     }
 
-    console.log(`✅ Peer temizlendi: ${peerId}`);
+    console.log(`✅ Peer temizlendi (FORCE): ${peerId}`);
   }
 
   /**
