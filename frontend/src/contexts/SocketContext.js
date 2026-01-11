@@ -117,7 +117,7 @@ export const SocketProvider = ({ children }) => {
         transports: ['polling', 'websocket'],
         upgrade: true,
         rememberUpgrade: false,
-        forceNew: true,
+        // forceNew: true, // Removed - keep connection alive across navigations
         reconnection: true,
         timeout: 20000,
         path: '/socket.io'
@@ -231,6 +231,11 @@ export const SocketProvider = ({ children }) => {
         dispatch({ type: socketActions.ADD_MESSAGE, payload: data.message });
       });
 
+      newSocket.on('message_deleted', (data) => {
+        console.log('🗑️ Message deleted:', data);
+        window.dispatchEvent(new CustomEvent('message_deleted', { detail: data }));
+      });
+
       // Location events
       newSocket.on('user_location_updated', (data) => {
         console.log('📍 Location updated:', data);
@@ -240,6 +245,11 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('location_updated', (data) => {
         console.log('📍 My location updated:', data);
         // Optionally show a toast or update UI
+      });
+
+      newSocket.on('location_update_success', (data) => {
+        console.log('📍 Location updated:', data);
+        toast.success('Konumunuz güncellendi');
       });
 
       // WebRTC signaling events
@@ -261,6 +271,37 @@ export const SocketProvider = ({ children }) => {
         window.dispatchEvent(new CustomEvent('webrtc_ice_candidate', { detail: data }));
       });
 
+      // User activity events
+      newSocket.on('user_started_talking', (data) => {
+        console.log('🎤 User started talking:', data);
+        window.dispatchEvent(new CustomEvent('user_started_talking', { detail: data }));
+      });
+
+      newSocket.on('user_stopped_talking', (data) => {
+        console.log('🔇 User stopped talking:', data);
+        window.dispatchEvent(new CustomEvent('user_stopped_talking', { detail: data }));
+      });
+
+      newSocket.on('user_speaking', (data) => {
+        window.dispatchEvent(new CustomEvent('user_speaking', { detail: data }));
+      });
+
+      // Room events
+      newSocket.on('room_created', (data) => {
+        console.log('🏗️ Room created:', data);
+        window.dispatchEvent(new CustomEvent('room_created', { detail: data }));
+      });
+
+      newSocket.on('room_deleted', (data) => {
+        console.log('🗑️ Room deleted:', data);
+        window.dispatchEvent(new CustomEvent('room_deleted', { detail: data }));
+      });
+
+      newSocket.on('room_updated', (data) => {
+        console.log('📝 Room updated:', data);
+        window.dispatchEvent(new CustomEvent('room_updated', { detail: data }));
+      });
+
       // Error events
       newSocket.on('error', (data) => {
         console.error('❌ Socket error:', data);
@@ -269,7 +310,8 @@ export const SocketProvider = ({ children }) => {
       });
 
       return () => {
-        console.log('🔌 Disconnecting socket...');
+        // Only disconnect when user/token actually changes, not on every unmount
+        console.log('🔌 Socket cleanup - disconnecting due to user/token change');
         newSocket.disconnect();
       };
 
