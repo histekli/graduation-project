@@ -272,4 +272,9 @@ class MediasoupManager {
   }
 }
 
-module.exports = new MediasoupManager();
+// Singleton enforcement to prevent multiple instances due to require path differences
+if (!global.mediasoupManagerInstance) {
+  global.mediasoupManagerInstance = new MediasoupManager();
+}
+
+module.exports = global.mediasoupManagerInstance;
