@@ -194,7 +194,28 @@ class MediasoupManager {
     };
   }
 
-  // ... (getProducersInRoom remains unchanged)
+  /**
+   * Get all Producers in Room (except the requester)
+   */
+  getProducersInRoom(roomId, excludePeerId) {
+    const producers = [];
+    console.log(`🔍 getProducersInRoom: roomId=${roomId}, excludePeerId=${excludePeerId}`);
+    console.log(`🔍 Total producers in memory: ${this.producers.size}`);
+
+    for (const [producerId, data] of this.producers.entries()) {
+      console.log(`  - Producer ${producerId}: roomId=${data.roomId}, peerId=${data.peerId}, match=${data.roomId === roomId && data.peerId !== excludePeerId}`);
+
+      if (data.roomId === roomId && data.peerId !== excludePeerId) {
+        producers.push({
+          producerId,
+          peerId: data.peerId,
+          kind: data.producer.kind,
+        });
+      }
+    }
+    console.log(`🔍 Found ${producers.length} matching producers`);
+    return producers;
+  }
 
   /**
    * Cleanup resources for a specific socket
