@@ -248,12 +248,16 @@ const PROTOCOL = server instanceof https.Server ? 'https' : 'http';
       console.error('❌ Mediasoup Init Error (Non-fatal, starting server anyway):', err);
     }
 
+    // Start server
     server.listen(PORT, () => {
       console.log(`🚀 Sunucu ${PROTOCOL}://localhost:${PORT} adresinde çalışıyor`);
       console.log(`🌍 Ortam: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🎙️ SFU (Mediasoup): ${mediasoupManager.workers && mediasoupManager.workers.length > 0 ? 'Aktif' : 'Pasif (Hata)'}`);
       console.log(`🔒 Protokol: ${PROTOCOL.toUpperCase()}`);
     });
+
+    // Make io accessible to routes
+    app.set('io', io);
 
   } catch (error) {
     console.error('❌ Kritik Sunucu Hatası:', error);

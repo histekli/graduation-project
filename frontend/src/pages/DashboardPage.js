@@ -8,7 +8,7 @@ import axios from 'axios';
 const DashboardPage = () => {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
-  
+
   const [publicRooms, setPublicRooms] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,16 +24,16 @@ const DashboardPage = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Public odalar her zaman yüklenebilir (authentication gerektirmez)
       const roomsPromise = axios.get('/api/rooms/public');
-      
+
       // Kullanıcı listesi sadece kayıtlı kullanıcılar için
       let usersPromise;
       if (!user?.isGuest) {
         usersPromise = axios.get('/api/users/online');
       }
-      
+
       // API çağrılarını paralel olarak yap
       const responses = await Promise.all(
         user?.isGuest ? [roomsPromise] : [roomsPromise, usersPromise]
@@ -62,18 +62,18 @@ const DashboardPage = () => {
         console.log('👤 Misafir kullanıcı - Kullanıcı listesi atlanıyor');
         setOnlineUsers([]);
       }
-      
+
     } catch (error) {
       console.error('❌ Dashboard data error:', error);
-      
+
       if (error.response?.status === 401) {
         toast.error('Oturum süreniz dolmuş, lütfen tekrar giriş yapın');
         logout();
         return;
       }
-      
+
       toast.error('Veriler yüklenirken hata oluştu');
-      
+
       // Fallback mock data in case of network error
       const mockRooms = [
         {
@@ -117,9 +117,45 @@ const DashboardPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Real-time Room Updates with SocketContext
+  useEffect(() => {
+    if (socket) {
+      console.log('🔌 Dashboard: Socket connected, listening for updates...');
+
+      const handleRoomCreated = (room) => {
+        console.log('🆕 Dashboard: Yeni oda:', room.name);
+        setPublicRooms(prev => {
+          // Prevent duplicates
+          if (prev.some(r => r._id === room._id)) return prev;
+          return [room, ...prev];
+        });
+        toast.success(`Yeni oda: ${room.name}`, { duration: 3000, position: 'top-right' });
+      };
+
+      const handleRoomDeleted = (roomId) => {
+        console.log('🗑️ Dashboard: Oda silindi:', roomId);
+        setPublicRooms(prev => prev.filter(r => r._id !== roomId));
+      };
+
+      const handleRoomCountUpdate = (data) => {
+        // data: { roomId, userCount } (Backend'de bunu emit etmek gerekir)
+        // Şimdilik pas geçiyoruz veya implemente edebiliriz.
+      };
+
+      socket.on('room_created', handleRoomCreated);
+      socket.on('room_deleted', handleRoomDeleted);
+      // socket.on('room_updated', ...); 
+
+      return () => {
+        socket.off('room_created', handleRoomCreated);
+        socket.off('room_deleted', handleRoomDeleted);
+      };
+    }
+  }, [socket]);
+
   const handleCreateRoom = async (e) => {
     e.preventDefault();
-    
+
     if (!newRoom.name.trim()) {
       toast.error('Oda adı gerekli');
       return;
@@ -140,26 +176,26 @@ const DashboardPage = () => {
       window.localStorage.removeItem('current_room_id');
 
       const response = await axios.post('/api/rooms/create', newRoom);
-      
+
       console.log('✅ Oda oluşturuldu:', response.data);
       toast.success('Oda başarıyla oluşturuldu!');
       setShowCreateRoom(false);
       setNewRoom({ name: '', description: '', isPublic: true, maxUsers: 10 });
-      
-              // Oluşturulan odaya otomatik olarak git
+
+      // Oluşturulan odaya otomatik olarak git
       if (response.data && response.data.room && response.data.room._id) {
         const roomId = response.data.room._id;
         console.log('🚪 Odaya yönlendiriliyor:', roomId);
-        
+
         // Oda oluşturulduğunda kullanıcı zaten otomatik olarak odaya ekleniyor
         // Bu yüzden tekrar join işlemi yapmaya gerek yok
-        
+
         // Oda ID'sini localStorage'a kaydedelim (VoiceChat bileşeninde kullanılacak)
         localStorage.setItem('current_room_id', roomId);
-        
+
         // Yeni oda oluşturma bayrağı ekleyelim - bu, VoiceChat'te kontrol edilecek
         sessionStorage.setItem('new_room_created', roomId);
-        
+
         // Yönlendirme öncesi tüm event'lerin tamamlanması için biraz bekleyelim
         setTimeout(() => {
           // Sessiz katılım için flag ekleyelim - bu flag VoiceChat'te kontrol edilecek
@@ -171,16 +207,16 @@ const DashboardPage = () => {
         toast.error('Oda ID bulunamadı');
         fetchDashboardData(); // Listeyi yenile
       }
-      
+
     } catch (error) {
       console.error('❌ Room creation error:', error);
-      
+
       if (error.response?.status === 401) {
         toast.error('Oturum süreniz dolmuş, lütfen tekrar giriş yapın');
         logout();
         return;
       }
-      
+
       const errorMessage = error.response?.data?.error || error.message || 'Oda oluşturulurken hata oluştu';
       toast.error(errorMessage);
     }
@@ -189,17 +225,17 @@ const DashboardPage = () => {
   const joinRoom = async (roomId) => {
     try {
       console.log('🚪 Joining room:', roomId);
-      
+
       // Misafir kullanıcılar için direkt yönlendirme
       if (user?.isGuest) {
         console.log('👤 Misafir kullanıcı - Direkt voice chat\'e yönlendiriliyor');
         navigate(`/voice/${roomId}`);
         return;
       }
-      
+
       // localStorage'daki önceki oda bilgisini temizle
       window.localStorage.removeItem('current_room_id');
-      
+
       // Herhangi bir odada hala mevcut olabilecek durumu temizle
       if (user?.currentRoom) {
         try {
@@ -209,21 +245,21 @@ const DashboardPage = () => {
           console.error('⚠️ Önceki odadan çıkarken hata:', leaveError);
         }
       }
-      
+
       // Önce API'den oda durumunu kontrol edelim
       const checkResponse = await axios.get(`/api/rooms/${roomId}`);
       const roomData = checkResponse.data?.room;
-      
+
       // Kullanıcının zaten odada olup olmadığını kontrol edelim
       const userInRoom = roomData?.users?.some(u => u._id === user?._id || u.user?._id === user?._id);
-      
+
       if (userInRoom) {
         console.log('⚠️ Kullanıcı zaten odada:', roomId);
-        
+
         try {
           await axios.post(`/api/rooms/${roomId}/leave`);
           console.log('✅ Odadan çıkış yapıldı, tekrar katılınacak');
-          
+
           // Temiz bir şekilde yeniden katıl
           await axios.post(`/api/rooms/${roomId}/join`);
           navigate(`/voice/${roomId}`);
@@ -233,29 +269,29 @@ const DashboardPage = () => {
         }
         return;
       }
-      
+
       // Normal katılım işlemi
       await axios.post(`/api/rooms/${roomId}/join`);
       navigate(`/voice/${roomId}`);
-      
+
     } catch (error) {
       console.error('❌ Room join error:', error);
-      
+
       if (error.response?.status === 401) {
         toast.error('Oturum süreniz dolmuş, lütfen tekrar giriş yapın');
         logout();
         return;
       }
-      
+
       // API'den "zaten odadasınız" hatası gelirse, önce çıkış yapıp sonra tekrar girmeyi deneyelim
-      if (error.response?.data?.error?.includes('zaten') || 
-          error.response?.data?.message?.includes('zaten')) {
+      if (error.response?.data?.error?.includes('zaten') ||
+        error.response?.data?.message?.includes('zaten')) {
         console.log('⚠️ Kullanıcı zaten odada, önce çıkıp sonra tekrar girilecek');
-        
+
         try {
           await axios.post(`/api/rooms/${roomId}/leave`);
           console.log('✅ Odadan çıkış yapıldı, tekrar katılınacak');
-          
+
           await axios.post(`/api/rooms/${roomId}/join`);
           navigate(`/voice/${roomId}`);
         } catch (err) {
@@ -264,7 +300,7 @@ const DashboardPage = () => {
         }
         return;
       }
-      
+
       const errorMessage = error.response?.data?.error || 'Odaya katılırken hata oluştu';
       toast.error(errorMessage);
     }
@@ -281,13 +317,13 @@ const DashboardPage = () => {
       fetchDashboardData(); // Listeyi yenile
     } catch (error) {
       console.error('❌ Room delete error:', error);
-      
+
       if (error.response?.status === 401) {
         toast.error('Oturum süreniz dolmuş, lütfen tekrar giriş yapın');
         logout();
         return;
       }
-      
+
       const errorMessage = error.response?.data?.error || 'Oda silinirken hata oluştu';
       toast.error(errorMessage);
     }
@@ -304,7 +340,7 @@ const DashboardPage = () => {
     const diff = now - new Date(date);
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
-    
+
     if (minutes < 60) {
       return `${minutes} dakika önce`;
     } else if (hours < 24) {
@@ -340,7 +376,7 @@ const DashboardPage = () => {
                 <span>Hoş geldiniz, {user?.username}</span>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowCreateRoom(true)}
@@ -349,7 +385,7 @@ const DashboardPage = () => {
                 <Plus size={16} />
                 <span className="hidden sm:block">Oda Oluştur</span>
               </button>
-              
+
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-2 text-gray-600 hover:text-red-600 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
@@ -363,7 +399,7 @@ const DashboardPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Misafir Uyarısı */}
         {user?.isGuest && (
           <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
@@ -379,11 +415,11 @@ const DashboardPage = () => {
                 </h3>
                 <div className="mt-2 text-sm text-yellow-700">
                   <p>
-                    Şu anda <strong>{user.username}</strong> olarak misafir modunda girdiniz. 
-                    Verileriniz kaydedilmez ve çıkış yaptığınızda silinir. 
+                    Şu anda <strong>{user.username}</strong> olarak misafir modunda girdiniz.
+                    Verileriniz kaydedilmez ve çıkış yaptığınızda silinir.
                   </p>
                   <div className="mt-2">
-                    <Link 
+                    <Link
                       to="/register"
                       className="text-yellow-800 hover:text-yellow-900 font-medium underline"
                     >
@@ -395,7 +431,7 @@ const DashboardPage = () => {
             </div>
           </div>
         )}
-        
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -409,7 +445,7 @@ const DashboardPage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
               <div className="p-3 bg-green-100 rounded-lg">
@@ -421,7 +457,7 @@ const DashboardPage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
               <div className="p-3 bg-purple-100 rounded-lg">
@@ -452,7 +488,7 @@ const DashboardPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Public Rooms */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm">
@@ -474,7 +510,7 @@ const DashboardPage = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="p-6">
                 {/* Misafir Kullanıcılar için Hızlı Test Odası */}
                 {user?.isGuest && (
@@ -501,7 +537,7 @@ const DashboardPage = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {publicRooms.length === 0 ? (
                   <div className="text-center py-12">
                     <Users className="text-gray-300 text-4xl mx-auto mb-4" />
@@ -547,7 +583,7 @@ const DashboardPage = () => {
                               </span>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2">
                             {room.creator === user?.username && (
                               <button
@@ -561,11 +597,10 @@ const DashboardPage = () => {
                             <button
                               onClick={() => joinRoom(room._id)}
                               disabled={room.userCount >= room.maxUsers}
-                              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                                room.userCount >= room.maxUsers
-                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                  : 'bg-blue-500 text-white hover:bg-blue-600'
-                              }`}
+                              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${room.userCount >= room.maxUsers
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 text-white hover:bg-blue-600'
+                                }`}
                             >
                               {room.userCount >= room.maxUsers ? 'Dolu' : 'Katıl'}
                             </button>
@@ -590,7 +625,7 @@ const DashboardPage = () => {
                   {onlineUsers.length} kişi aktif
                 </p>
               </div>
-              
+
               <div className="p-6">
                 {onlineUsers.length === 0 ? (
                   <p className="text-gray-500 text-center py-8">Çevrimiçi kullanıcı yok</p>
@@ -619,7 +654,7 @@ const DashboardPage = () => {
                         </div>
                       </div>
                     ))}
-                    
+
                     {onlineUsers.length > 8 && (
                       <div className="text-center pt-2">
                         <span className="text-sm text-gray-500">
@@ -678,7 +713,7 @@ const DashboardPage = () => {
                 ×
               </button>
             </div>
-            
+
             <form onSubmit={handleCreateRoom} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -693,7 +728,7 @@ const DashboardPage = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Açıklama
@@ -706,7 +741,7 @@ const DashboardPage = () => {
                   placeholder="Oda açıklaması (opsiyonel)"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Maksimum Kullanıcı
@@ -722,7 +757,7 @@ const DashboardPage = () => {
                   <option value={50}>50 Kullanıcı</option>
                 </select>
               </div>
-              
+
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -735,7 +770,7 @@ const DashboardPage = () => {
                   Genel oda (herkes katılabilir)
                 </label>
               </div>
-              
+
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"

@@ -90,6 +90,12 @@ router.post('/create', authenticateToken, async (req, res) => {
       { path: 'users.user', select: 'username avatar isOnline' }
     ]);
 
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('room_created', room);
+    }
+
     res.status(201).json({
       message: 'Oda başarıyla oluşturuldu',
       room
@@ -283,6 +289,12 @@ router.delete('/:roomId', authenticateToken, async (req, res) => {
       { currentRoom: roomId },
       { currentRoom: null }
     );
+
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('room_deleted', roomId);
+    }
 
     res.json({
       message: 'Oda başarıyla silindi'

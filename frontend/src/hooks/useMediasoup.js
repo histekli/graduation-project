@@ -265,12 +265,14 @@ const useMediasoup = (socket, roomId, userId) => {
       });
 
       // Resume consumer
-      if (consumer.paused) {
-        // Consumer is created paused on server side? usually no unless specific config
-        // But mediasoup-client consumers are paused locally if transport is unknown? No.
-        // Resume just in case?
-        // socket.emit('resumeConsumer', { consumerId: consumer.id });
-      }
+      // Always resume consumer after creation to ensure playback
+      await new Promise((resolve) => {
+        socket.emit('resumeConsumer', {
+          consumerId: consumer.id,
+          roomId
+        }, () => resolve());
+      });
+      console.log('▶️ Consumer resumed');
 
     } catch (error) {
       console.error('❌ Consume failed:', error);
@@ -357,10 +359,12 @@ const useMediasoup = (socket, roomId, userId) => {
             if (response.error) {
               reject(new Error(response.error));
             } else {
-              // Backward compatibility: response.producerIds
-              // New format: response.producers = [{producerId, peerId}, ...]
-              if (response.producerIds) {
-                // Convert old string array to object array
+              // Priority: Check for 'producers' array (contains peerId)
+              if (response.producers) {
+                resolve({ producers: response.producers });
+              }
+              // Fallback: Check for 'producerIds' array (legacy)
+              else if (response.producerIds) {
                 resolve({ producers: response.producerIds.map(id => ({ producerId: id, peerId: null })) });
               } else {
                 resolve(response);

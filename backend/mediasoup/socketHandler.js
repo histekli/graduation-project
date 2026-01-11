@@ -119,12 +119,21 @@ module.exports = (io, socket) => {
    */
   socket.on('getProducers', async ({ roomId }, callback) => {
     try {
-      const producers = mediasoupManager.getProducersInRoom(roomId, peerId);
-      // Frontend expects 'producerIds' array - extract producerId from each object
-      const producerIds = producers.map(p => p.producerId);
+      const fullProducers = mediasoupManager.getProducersInRoom(roomId, peerId);
+
+      // Frontend expects:
+      // 1. producerIds (legacy array of strings)
+      // 2. producers (array of objects { producerId, peerId, kind })
+
+      const producerIds = fullProducers.map(p => p.producerId);
+
       // Return both formats for compatibility
-      callback({ producerIds, producers });
-      console.log(`📋 Producers listesi: ${peerId} - ${producerIds.length} producer`);
+      callback({
+        producerIds,
+        producers: fullProducers
+      });
+
+      console.log(`📋 Producers listesi: ${peerId} - ${producerIds.length} producer:`, producerIds);
     } catch (error) {
       console.error('❌ getProducers hatası:', error);
       callback({ error: error.message });
