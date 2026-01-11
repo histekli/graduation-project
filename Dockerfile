@@ -13,8 +13,8 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Setup Backend and Serve
-FROM node:18-bullseye
-# Using bullseye for python/build tools compatibility (mediasoup)
+FROM node:20-bookworm
+# Using bookworm for GLIBC 2.36 compatibility with mediasoup worker
 WORKDIR /app
 
 # Install build dependencies for mediasoup (including meson/ninja for newer versions)
