@@ -56,12 +56,17 @@ class MediasoupManager {
     }
 
     const worker = this.getNextWorker();
+
+    if (!worker) {
+      throw new Error('Mediasoup worker bulunamadı (Init başarısız olabilir)');
+    }
+
     const router = await worker.createRouter({
       mediaCodecs: config.router.mediaCodecs,
     });
 
     this.routers.set(roomId, router);
-    console.log(`📡 Router oluşturuldu: ${roomId}`);
+    console.log(`[Mediasoup] Router oluşturuldu: ${roomId}`);
     return router;
   }
 
