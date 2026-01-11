@@ -363,6 +363,10 @@ const useMediasoup = (socket, roomId, userId) => {
         await createRecvTransport();
       }
 
+      // Wait a moment for other users to finish creating their producers
+      // This prevents race condition where we call getProducers before first user's producer is created
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Get existing producers in room and consume them
       try {
         // Backend returns an array of objects: { producerId, peerId } ideally
