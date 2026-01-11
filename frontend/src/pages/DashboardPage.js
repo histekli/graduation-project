@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useSocket } from '../contexts/SocketContext';
 import { Users, Plus, MapPin, Clock, Mic, LogOut, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const DashboardPage = () => {
   const { user, token, logout } = useAuth();
+  const { socket } = useSocket();
   const navigate = useNavigate();
 
   const [publicRooms, setPublicRooms] = useState([]);
