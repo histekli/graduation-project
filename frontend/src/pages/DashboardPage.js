@@ -581,13 +581,13 @@ const DashboardPage = () => {
                                 {formatTime(room.createdAt)}
                               </span>
                               <span className="flex items-center">
-                                👤 {room.creator}
+                                👤 {typeof room.creator === 'object' ? room.creator?.username : room.creator}
                               </span>
                             </div>
                           </div>
 
                           <div className="flex items-center space-x-2">
-                            {room.creator === user?.username && (
+                            {(typeof room.creator === 'object' ? room.creator?.username : room.creator) === user?.username && (
                               <button
                                 onClick={() => deleteRoom(room._id, room.name)}
                                 className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
