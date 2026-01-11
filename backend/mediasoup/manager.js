@@ -201,7 +201,13 @@ class MediasoupManager {
     // Close transports
     for (const [id, data] of this.transports.entries()) {
       if (data.roomId === roomId && data.peerId === peerId) {
-        data.transport.close();
+        try {
+          if (data.transport && !data.transport.closed) {
+            data.transport.close();
+          }
+        } catch (err) {
+          console.error(`⚠️ Transport close hatası (${id}):`, err);
+        }
         this.transports.delete(id);
       }
     }
