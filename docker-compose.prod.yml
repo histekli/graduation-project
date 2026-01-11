@@ -19,7 +19,7 @@ services:
       - MEDIASOUP_MAX_PORT=40200
       - MEDIASOUP_LISTEN_IP=0.0.0.0
       # IMPORTANT: If behind NAT (AWS/DigitalOcean), set this to Public IP
-      - MEDIASOUP_ANNOUNCED_IP=${PUBLIC_IP:-127.0.0.1}
+      - MEDIASOUP_ANNOUNCED_IP=${PUBLIC_IP:-46.224.207.43}
     depends_on:
       - db
       - redis

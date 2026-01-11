@@ -59,7 +59,7 @@ try {
 const io = socketIo(server, {
   cors: {
     origin: process.env.NODE_ENV === 'production'
-      ? ["https://yourdomain.com"]
+      ? ["https://geotalk.app", "https://www.geotalk.app"]
       : [
         "http://localhost:3000",
         "http://localhost:19006",
