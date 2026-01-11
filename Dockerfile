@@ -20,6 +20,10 @@ WORKDIR /app
 # Install build dependencies for mediasoup
 RUN apt-get update && apt-get install -y python3 python3-pip python3-dev build-essential net-tools && rm -rf /var/lib/apt/lists/*
 ENV PYTHON=/usr/bin/python3
+# Ensure Mediasoup finds the worker binary
+# mediasoup 3.12+ builds worker in node_modules/mediasoup/worker/out/Release/mediasoup-worker
+# We do not strictly need to set this if installation is correct, but can help debugging
+# ENV MEDIASOUP_WORKER_BIN="/app/backend/node_modules/mediasoup/worker/out/Release/mediasoup-worker"
 
 # Setup Backend
 WORKDIR /app/backend
