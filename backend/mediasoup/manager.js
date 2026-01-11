@@ -135,11 +135,13 @@ class MediasoupManager {
       rtpParameters,
     });
 
+    console.log(`🔍 createProducer: Adding producer ${producer.id} to Map for peerId=${peerId}, roomId=${roomId}`);
     this.producers.set(producer.id, {
       producer,
       roomId,
       peerId,
     });
+    console.log(`🔍 createProducer: Producer added. Total producers now: ${this.producers.size}`);
 
     console.log(`🎤 Producer oluşturuldu: ${peerId} (${kind})`);
     return producer;
