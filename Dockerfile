@@ -17,19 +17,26 @@ FROM node:18-bullseye
 # Using bullseye for python/build tools compatibility (mediasoup)
 WORKDIR /app
 
-# Install build dependencies for mediasoup
+# Install build dependencies for mediasoup (including meson/ninja for newer versions)
 RUN apt-get update && apt-get install -y \
     python3 python3-pip python3-dev \
     build-essential net-tools iproute2 \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
+
+# Install meson and ninja (required for mediasoup build)
+RUN pip3 install meson ninja
+
 ENV PYTHON=/usr/bin/python3
+ENV TINI_VERSION v0.19.0
 
 # Setup Backend
 WORKDIR /app/backend
 COPY backend/package*.json ./
 
-# Install dependencies and force build mediasoup worker
-RUN npm install
+# Install dependencies and force build mediasoup worker from source
+# Using unsafe-perm to ensure root user can build headers
+RUN npm install --unsafe-perm
 RUN npm rebuild mediasoup --build-from-source
 
 # Copy backend source
