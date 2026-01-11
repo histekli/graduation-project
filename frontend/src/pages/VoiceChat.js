@@ -131,22 +131,7 @@ const VoiceChat = () => {
       return;
     }
 
-    // Misafir kullanıcılar için basitleştirilmiş akış
-    if (user?.isGuest) {
-      console.log('👤 Misafir kullanıcı - Basitleştirilmiş oda yükleme');
-      setRoom({
-        _id: roomId,
-        name: roomId === 'guest-test-room' ? 'Test Odası' : `Oda ${roomId}`,
-        isGuest: true
-      });
-      setRoomUsers([{
-        _id: user._id,
-        username: user.username,
-        isGuest: true
-      }]);
-      setLoading(false);
-      return;
-    }
+
 
     if (!socket || !connected) {
       console.log('⚠️ Socket not ready, waiting...:', { socket: !!socket, connected });
