@@ -325,7 +325,7 @@ export const SocketProvider = ({ children }) => {
       dispatch({ type: socketActions.SET_ROOM_USERS, payload: [] });
       dispatch({ type: socketActions.SET_MESSAGES, payload: [] });
     }
-  }, [user, token]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?._id, token]); // Use user._id instead of user object to avoid recreation on every render
 
   // Socket action functions
   const joinRoom = (roomId) => {
