@@ -487,6 +487,52 @@ const useMediasoup = (socket, roomId, userId) => {
     return await enableMicrophone();
   }, [joinAsListener, enableMicrophone]);
 
+  // Handle socket disconnection/reconnection
+  useEffect(() => {
+    if (!socket) return;
+
+    const onDisconnect = () => {
+      console.log('🔌 Socket disconnected, cleaning up Mediasoup...');
+      setIsConnected(false);
+      setIsTalking(false);
+
+      // Clean up transports
+      if (sendTransportRef.current) {
+        try { sendTransportRef.current.close(); } catch (e) { }
+        sendTransportRef.current = null;
+      }
+      if (recvTransportRef.current) {
+        try { recvTransportRef.current.close(); } catch (e) { }
+        recvTransportRef.current = null;
+      }
+
+      // Clean up producer
+      if (producerRef.current) {
+        try { producerRef.current.close(); } catch (e) { }
+        producerRef.current = null;
+      }
+
+      // Clean up consumers
+      consumersRef.current.forEach(consumer => {
+        try { consumer.close(); } catch (e) { }
+      });
+      consumersRef.current.clear();
+
+      // Reset Device? Usually not needed unless router capabilities change drastically, 
+      // but safer to reset if router changes.
+      deviceRef.current = null;
+
+      // Clear remote streams
+      setRemoteStreams(new Map());
+      remoteStreamsRef.current.clear();
+    };
+
+    socket.on('disconnect', onDisconnect);
+    return () => {
+      socket.off('disconnect', onDisconnect);
+    };
+  }, [socket]);
+
   // Latency calculation
   const [networkLatency, setNetworkLatency] = useState(0);
 
