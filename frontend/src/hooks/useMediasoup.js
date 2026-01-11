@@ -161,6 +161,10 @@ const useMediasoup = (socket, roomId, userId) => {
       });
 
       // Create transport on device
+      if (!deviceRef.current) {
+        console.warn('⚠️ Device not initialized, initializing now...');
+        await initDevice();
+      }
       const recvTransport = deviceRef.current.createRecvTransport(transportOptions);
       console.log('🔍 Frontend recv transport ID:', recvTransport.id);
       console.log('🔍 IDs eşleşiyor mu?', recvTransport.id === transportOptions.id);
