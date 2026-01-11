@@ -441,9 +441,10 @@ const VoiceChat = () => {
   // Konuşma başlama
   const handleStartTalking = () => {
     console.log('📲 handleStartTalking çağrıldı');
-    if (audioEnabled && socket && connected && typeof socket.emit === 'function') {
-      const result = startTalking();
-      if (result) {
+    if (audioEnabled) {
+      startTalking();
+      // Notify other users via socket for UI updates
+      if (socket && connected) {
         socket.emit('start_talking', { roomId });
       }
     }
@@ -452,9 +453,10 @@ const VoiceChat = () => {
   // Konuşma bitirme
   const handleStopTalking = () => {
     console.log('📲 handleStopTalking çağrıldı');
-    if (audioEnabled && socket && connected && typeof socket.emit === 'function') {
-      const result = stopTalking();
-      if (result) {
+    if (audioEnabled) {
+      stopTalking();
+      // Notify other users via socket for UI updates
+      if (socket && connected) {
         socket.emit('stop_talking', { roomId });
       }
     }

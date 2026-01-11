@@ -287,23 +287,33 @@ const useMediasoup = (socket, roomId, userId) => {
    * Start Talking (Resume Producer)
    */
   const startTalking = useCallback(async () => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getAudioTracks().forEach(track => track.enabled = true);
-      setIsTalking(true);
-      socket.emit('start_talking', { roomId });
+    if (producerRef.current) {
+      try {
+        await producerRef.current.resume();
+        setIsTalking(true);
+        console.log('▶️ Producer resumed');
+      } catch (err) {
+        console.error('❌ Failed to resume producer:', err);
+      }
+    } else {
+      console.warn('⚠️ No producer to resume');
     }
-  }, [socket, roomId]);
+  }, []);
 
   /**
    * Stop Talking (Pause Producer)
    */
   const stopTalking = useCallback(async () => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getAudioTracks().forEach(track => track.enabled = false);
-      setIsTalking(false);
-      socket.emit('stop_talking', { roomId });
+    if (producerRef.current) {
+      try {
+        await producerRef.current.pause();
+        setIsTalking(false);
+        console.log('⏸️ Producer paused');
+      } catch (err) {
+        console.error('❌ Failed to pause producer:', err);
+      }
     }
-  }, [socket, roomId]);
+  }, []);
 
   // Effect to listen for new producers
   useEffect(() => {
@@ -456,6 +466,32 @@ const useMediasoup = (socket, roomId, userId) => {
         await createRecvTransport();
         // Also consume if we just created recv transport
         await joinAsListener();
+      }
+
+      // NOW CREATE PRODUCER - Actually send audio to server
+      if (sendTransportRef.current && !producerRef.current) {
+        const audioTrack = stream.getAudioTracks()[0];
+        console.log('🎤 Creating producer from audio track...');
+
+        try {
+          const producer = await sendTransportRef.current.produce({
+            track: audioTrack,
+            codecOptions: {
+              opusStereo: true,
+              opusDtx: true,
+            },
+          });
+
+          producerRef.current = producer;
+          console.log('✅ Producer created:', producer.id);
+
+          // Pause producer by default (user will unpause with PTT button)
+          await producer.pause();
+          console.log('⏸️ Producer paused (waiting for PTT)');
+        } catch (err) {
+          console.error('❌ Failed to create producer:', err);
+          throw err;
+        }
       }
 
       return stream;
