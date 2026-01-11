@@ -3,7 +3,7 @@
  * Frontend ile Mediasoup arasındaki iletişim
  */
 
-const mediasoupManager = require('../mediasoup/manager');
+const mediasoupManager = require('./manager');
 
 module.exports = (io, socket) => {
   const peerId = socket.user._id.toString();
