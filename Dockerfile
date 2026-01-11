@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install meson and ninja (required for mediasoup build)
-RUN pip3 install meson ninja
+RUN pip3 install --break-system-packages meson ninja
 
 ENV PYTHON=/usr/bin/python3
 ENV TINI_VERSION v0.19.0
