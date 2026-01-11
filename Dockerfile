@@ -13,7 +13,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Setup Backend and Serve
-FROM node:16-bullseye
+FROM node:18-bullseye
 # Using bullseye for python/build tools compatibility (mediasoup)
 WORKDIR /app
 
