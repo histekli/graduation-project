@@ -25,6 +25,8 @@ services:
       - redis
     networks:
       - carvoice-network
+    volumes:
+      - ./ssl:/app/ssl
 
   db:
     image: mongo:6.0
