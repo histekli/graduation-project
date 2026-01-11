@@ -33,6 +33,12 @@ module.exports = (io, socket) => {
    */
   socket.on('createWebRtcTransport', async ({ roomId, direction }, callback) => {
     try {
+      // Fail-safe: Ensure socket is in the room
+      if (roomId && !socket.rooms.has(roomId.toString())) {
+        console.log(`⚠️ Socket ${socket.id} not in room ${roomId}, force joining (in transport create)...`);
+        socket.join(roomId.toString());
+      }
+
       const transport = await mediasoupManager.createWebRtcTransport(
         roomId,
         peerId,
@@ -72,6 +78,12 @@ module.exports = (io, socket) => {
    */
   socket.on('produce', async ({ transportId, kind, rtpParameters, roomId }, callback) => {
     try {
+      // Fail-safe: Ensure socket is in the room to receive broadcasts
+      if (roomId && !socket.rooms.has(roomId.toString())) {
+        console.log(`⚠️ Socket ${socket.id} not in room ${roomId}, force joining (in produce)...`);
+        socket.join(roomId.toString());
+      }
+
       const producer = await mediasoupManager.createProducer(
         transportId,
         rtpParameters,
