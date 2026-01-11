@@ -5,7 +5,13 @@
 
 const mediasoupManager = require('./manager');
 
+console.log('🔍 Mediasoup Handler Loaded. Manager status:', !!mediasoupManager);
+
 module.exports = (io, socket) => {
+  if (!mediasoupManager) {
+    console.error('❌ Kritik Hata: Mediasoup Manager yüklenemedi!');
+    return;
+  }
   const peerId = socket.user._id.toString();
 
   /**
