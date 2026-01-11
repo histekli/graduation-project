@@ -24,7 +24,11 @@ class MediasoupManager {
     console.log(`🚀 Mediasoup başlatılıyor: ${numWorkers} worker...`);
 
     for (let i = 0; i < numWorkers; i++) {
-      const worker = await mediasoup.createWorker(config.worker);
+      const worker = await mediasoup.createWorker({
+        ...config.worker,
+        logLevel: 'debug',
+        logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp', 'rtx', 'bwe', 'score', 'simulcast', 'svc', 'sctp']
+      });
 
       worker.on('died', () => {
         console.error('❌ Mediasoup worker öldü! Exit:', worker.pid);
