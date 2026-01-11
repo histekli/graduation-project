@@ -78,6 +78,19 @@ const VoiceChat = () => {
     networkLatency
   } = useMediasoup(socket, roomId, user?._id);
 
+  // Debug room state updates
+  useEffect(() => {
+    if (roomUsers.length > 0) {
+      console.log('👥 [DEBUG Frontend] roomUsers updated:', roomUsers);
+    }
+  }, [roomUsers]);
+
+  useEffect(() => {
+    if (remoteStreams.size > 0) {
+      console.log('🔄 [DEBUG Frontend] remoteStreams updated:', Array.from(remoteStreams.entries()));
+    }
+  }, [remoteStreams]);
+
   // Auto-join as listener when connected
   useEffect(() => {
     if (socket && roomId && !isConnected) {

@@ -79,6 +79,7 @@ module.exports = (io, redisLocationService) => {
 
         // Odadaki kullanıcıları al
         const roomUsers = await User.find({ currentRoom: roomId });
+        console.log(`👥 [DEBUG] Odadaki Kullanıcılar (${room.name}):`, roomUsers.map(u => `${u.username} (${u._id})`));
 
         socket.emit('room_joined', {
           room: {
@@ -160,6 +161,9 @@ module.exports = (io, redisLocationService) => {
 
         socket.emit('room_left', { roomId });
         console.log(`✅ ${socket.user.username} odadan ayrıldı: ${roomId}`);
+
+        const remainingUsers = await User.find({ currentRoom: roomId });
+        console.log(`👥 [DEBUG] Odada Kalanlar:`, remainingUsers.map(u => `${u.username} (${u._id})`));
 
       } catch (error) {
         console.error('❌ Leave room hatası:', error);
