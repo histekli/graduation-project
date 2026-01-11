@@ -319,8 +319,10 @@ const useMediasoup = (socket, roomId, userId) => {
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewProducer = async ({ producerId, userId }) => {
-      console.log('🔔 New producer announced:', producerId, 'for user:', userId);
+    const handleNewProducer = async ({ producerId, userId, peerId }) => {
+      // Backend uses 'peerId' in some events and 'userId' in others. Handle both.
+      const actualUserId = userId || peerId;
+      console.log('🔔 New producer announced:', producerId, 'for user:', actualUserId);
 
       try {
         // Ensure device is initialized
@@ -339,12 +341,21 @@ const useMediasoup = (socket, roomId, userId) => {
         await consumeAudio(producerId);
 
         // Update UI with User ID mapping
-        if (userId) {
+        if (actualUserId) {
           setRemoteStreams(prev => {
             const stream = remoteStreamsRef.current.get(producerId);
             if (stream) {
               const newMap = new Map(prev);
-              newMap.set(userId, stream); // Map by UserID for UI
+              newMap.set(actualUserId, stream); // Map by UserID for UI
+              // Also keep producerId mapping as backup or for cleanup? 
+              // Actually, keeping both might duplicate render. 
+              // But 'consumeAudio' adds by producerId first.
+              // We should probably remove the producerId key if we have userId to avoid duplication in iterator?
+              // VoiceChat iterates map entries. If we have [producerId, stream] AND [userId, stream], we render audio twice!
+              // Let's remove producerId key if it differs from userId
+              if (producerId !== actualUserId) {
+                newMap.delete(producerId);
+              }
               return newMap;
             }
             return prev;
