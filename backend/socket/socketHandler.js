@@ -108,6 +108,25 @@ module.exports = (io, redisLocationService) => {
 
         console.log(`✅ ${socket.user.username} odaya katıldı: ${room.name}`);
 
+        // Send existing producers to the newly joined user
+        // This ensures they receive all current producers immediately without race conditions
+        const mediasoupManager = require('../mediasoup/manager');
+        const existingProducers = mediasoupManager.getProducersInRoom(roomId, socket.user._id.toString());
+
+        if (existingProducers.length > 0) {
+          console.log(`📡 Sending ${existingProducers.length} existing producers to ${socket.user.username}`);
+
+          // Emit newProducer event for each existing producer to this socket only
+          for (const producer of existingProducers) {
+            socket.emit('newProducer', {
+              producerId: producer.producerId,
+              peerId: producer.peerId,
+              kind: producer.kind
+            });
+            console.log(`  📤 Sent existing producer ${producer.producerId} from peer ${producer.peerId}`);
+          }
+        }
+
       } catch (error) {
         console.error('❌ Join room hatası:', error);
         socket.emit('error', { message: 'Odaya katılma hatası' });

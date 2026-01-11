@@ -363,62 +363,10 @@ const useMediasoup = (socket, roomId, userId) => {
         await createRecvTransport();
       }
 
-      // Wait a moment for other users to finish creating their producers
-      // This prevents race condition where we call getProducers before first user's producer is created
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Get existing producers in room and consume them
-      try {
-        // Backend returns an array of objects: { producerId, peerId } ideally
-        // But current implementation might just return producerIds string array
-        // Let's modify frontend to handle both or request more info
-        const { producers } = await new Promise((resolve, reject) => {
-          socket.emit('getProducers', { roomId }, (response) => {
-            if (response.error) {
-              reject(new Error(response.error));
-            } else {
-              // Priority: Check for 'producers' array (contains peerId)
-              if (response.producers) {
-                resolve({ producers: response.producers });
-              }
-              // Fallback: Check for 'producerIds' array (legacy)
-              else if (response.producerIds) {
-                resolve({ producers: response.producerIds.map(id => ({ producerId: id, peerId: null })) });
-              } else {
-                resolve(response);
-              }
-            }
-          });
-        });
-
-        console.log(`📡 Found ${producers.length} existing producers`);
-
-        // Consume each existing producer
-        for (const p of producers) {
-          const { producerId, peerId } = p;
-          console.log(`🔄 Consuming existing producer: ${producerId} (User: ${peerId})`);
-          await consumeAudio(producerId);
-
-          if (peerId) {
-            // Map producer to user immediately if we have peerId
-            setRemoteStreams(prev => {
-              const stream = remoteStreamsRef.current.get(producerId);
-              if (stream) {
-                const newMap = new Map(prev);
-                newMap.set(peerId, stream);
-                return newMap;
-              }
-              return prev;
-            });
-          }
-        }
-
-        if (producers.length > 0) {
-          console.log(`✅ Successfully consumed ${producers.length} existing producers`);
-        }
-      } catch (error) {
-        console.error('❌ Failed to get/consume existing producers:', error);
-      }
+      // Note: We don't need to call getProducers anymore!
+      // Backend automatically sends 'newProducer' events for all existing producers
+      // when we join the room. This eliminates race conditions completely.
+      console.log('✅ Receive transport ready. Waiting for newProducer events from backend...');
 
       setIsConnected(true);
       return true;
