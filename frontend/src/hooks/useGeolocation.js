@@ -152,7 +152,7 @@ export const useGeolocation = () => {
     console.log('📍 Konum takibi durduruldu');
   };
 
-  // Throttled location update (2 saniyede bir - daha hızlı)
+  // Throttled location update (5 saniyede bir)
   const throttledLocationUpdate = useRef(
     throttle((locationData) => {
       try {
@@ -165,7 +165,7 @@ export const useGeolocation = () => {
       } catch (error) {
         console.error('❌ Konum gönderme hatası:', error);
       }
-    }, 2000)
+    }, 5000)
   ).current;
 
   // İki nokta arası mesafe hesaplama (Haversine formülü)
