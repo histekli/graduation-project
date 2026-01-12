@@ -8,8 +8,8 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import VoiceMap from '../components/VoiceMap';
 import PushToTalkButton from '../components/PushToTalkButton';
 import SecurityWarning from '../components/SecurityWarning';
-import MicrophoneTest from '../components/MicrophoneTest';
-import MobilePermissionHelper from '../components/MobilePermissionHelper';
+
+
 import AudioWaveform from '../components/AudioWaveform';
 import ChatBox from '../components/ChatBox';
 import { MapPin, Users, LogOut, Volume2 } from 'lucide-react';
@@ -734,19 +734,7 @@ const VoiceChat = () => {
               <div className="p-4">
                 {!audioEnabled ? (
                   <div className="space-y-4">
-                    {/* Mobil İzin Yardımcısı */}
-                    {isMobile() && checkMediaDevicesSupport() !== 'none' && checkMediaDevicesSupport() !== 'security-blocked' && (
-                      <MobilePermissionHelper
-                        onPermissionGranted={() => {
-                          console.log('✅ Mobil izin yardımcısından izin alındı');
-                          // Kullanıcıya başarı mesajı göster
-                        }}
-                        onPermissionDenied={(error) => {
-                          console.error('❌ Mobil izin yardımcısından hata:', error);
-                          setError('Mobil izin hatası: ' + error.message);
-                        }}
-                      />
-                    )}
+
 
                     {/* API desteklenmiyorsa uyarı */}
                     {checkMediaDevicesSupport() === 'none' && (
@@ -796,18 +784,6 @@ const VoiceChat = () => {
                           <em>⚠️ Not: Bu ayarlar sadece geliştirme için önerilir.</em>
                         </div>
                       </div>
-                    )}                    {/* Mikrofon Test Bileşeni */}
-                    {checkMediaDevicesSupport() !== 'none' && checkMediaDevicesSupport() !== 'security-blocked' && (
-                      <MicrophoneTest
-                        onTestComplete={(success, error) => {
-                          if (success) {
-                            console.log('✅ Mikrofon testi başarılı');
-                          } else {
-                            console.error('❌ Mikrofon testi başarısız:', error);
-                            setError(error || 'Mikrofon testi başarısız');
-                          }
-                        }}
-                      />
                     )}
 
                     {/* Mobil ve Masaüstü Etkinleştirme */}
@@ -815,31 +791,7 @@ const VoiceChat = () => {
                       <Volume2 size={48} className="text-gray-300 mx-auto mb-4" />
                       <h4 className="text-lg font-medium text-gray-900 mb-2">Ses Erişimi</h4>
 
-                      {/* Mobil cihaz uyarısı */}
-                      {isMobile() && (
-                        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                          <div className="text-sm text-yellow-800">
-                            <strong>📱 Mobil Cihaz Rehberi:</strong>
-                            <br />
-                            <div className="mt-2">
-                              <strong>🔍 Tarayıcı Desteği:</strong> {checkMediaDevicesSupport()}
-                            </div>
-                            1. Aşağıdaki butona basın
-                            <br />
-                            2. Tarayıcı mikrofon izni isteyecek
-                            <br />
-                            3. "İzin Ver" veya "Allow" seçin
-                            <br />
-                            {isIOS() ? (
-                              <>4. iOS'ta: Ayarlar → Safari → Kamera ve Mikrofon kontrol edin</>
-                            ) : (
-                              <>4. Android'de: Adres çubuğundaki mikrofon simgesi</>
-                            )}
-                            <br />
-                            5. Sorun yaşarsanız "Basit Mod" butonunu deneyin
-                          </div>
-                        </div>
-                      )}
+
 
                       <p className="text-gray-600 mb-4">
                         Konuşmak için mikrofonunuza erişim izni gerekli
@@ -856,26 +808,7 @@ const VoiceChat = () => {
                           🎤 Mikrofonu Etkinleştir
                         </button>
 
-                        {/* Mobil için alternatif basit buton */}
-                        {isMobile() && checkMediaDevicesSupport() !== 'security-blocked' && (
-                          <button
-                            onClick={async () => {
-                              try {
-                                setError(null);
-                                console.log('📱 Mobil basit mod deneniyor...');
-                                await initializeAudio();
-                                setAudioEnabled(true);
-                                console.log('✅ Mobil basit mod başarılı');
-                              } catch (error) {
-                                console.error('❌ Mobil basit mod hatası:', error);
-                                setError('📱 Mobil mikrofon erişimi başarısız: ' + error.message);
-                              }
-                            }}
-                            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm w-full"
-                          >
-                            📱 Basit Mod (Mobil İçin)
-                          </button>
-                        )}
+
                       </div>
 
                       {/* Mobil için ek ipuçları */}
