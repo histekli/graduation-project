@@ -9,11 +9,11 @@ export const useGeolocation = () => {
   const [nearbyUsers, setNearbyUsers] = useState([]);
   const watchId = useRef(null);
 
-  // GPS konum alma seçenekleri
+  // GPS konum alma seçenekleri - YÜKSEK HASSASIYET
   const geoOptions = {
-    enableHighAccuracy: false, // Yüksek doğruluk gerekli değilse false yapmak hızı artırır
-    timeout: 30000, // Zamanaşımı süresini artırdık (30 saniye)
-    maximumAge: 120000 // 2 dakika cache (daha uzun cache süresine izin verdik)
+    enableHighAccuracy: true, // GPS kullan, daha hassas konum
+    timeout: 10000, // 10 saniye timeout
+    maximumAge: 5000 // 5 saniye cache (daha fresh data)
   };
 
   // Konum takibini başlat
@@ -152,7 +152,7 @@ export const useGeolocation = () => {
     console.log('📍 Konum takibi durduruldu');
   };
 
-  // Throttled location update (5 saniyede bir)
+  // Throttled location update (2 saniyede bir - daha hızlı)
   const throttledLocationUpdate = useRef(
     throttle((locationData) => {
       try {
@@ -165,7 +165,7 @@ export const useGeolocation = () => {
       } catch (error) {
         console.error('❌ Konum gönderme hatası:', error);
       }
-    }, 5000)
+    }, 2000)
   ).current;
 
   // İki nokta arası mesafe hesaplama (Haversine formülü)
