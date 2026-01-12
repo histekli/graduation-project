@@ -51,14 +51,14 @@ export const useGeolocation = () => {
 
         setPosition(locationData);
 
-        // Sunucuya konum gönder
-        if (socket && typeof socket.emit === 'function') {
+        // Sunucuya konum gönder - SOCKET HAZIR MI KONTROL ET
+        if (socket && socket.connected && typeof socket.emit === 'function') {
           socket.emit('location_update', locationData);
+          console.log('📍 İlk konum sunucuya gönderildi:', locationData);
         } else {
-          console.log('Socket bağlantısı yok veya emit metodu bulunamadı');
+          console.warn('⚠️ İlk konum alındı ama socket bağlı değil, tekrar deneniyor...');
+          // Socket bağlanınca otomatik gönderilecek (watchPosition ile)
         }
-
-        console.log('📍 İlk konum alındı:', locationData);
       },
       (error) => {
         console.error('❌ Konum hatası kodu:', error.code, 'mesaj:', error.message);
@@ -110,11 +110,11 @@ export const useGeolocation = () => {
 
         setPosition(locationData);
 
-        // Sunucuya konum gönder (throttle ile)
-        if (socket && typeof socket.emit === 'function') {
+        // Sunucuya konum gönder (throttle ile) - SOCKET BAĞLI MI KONTROL ET
+        if (socket && socket.connected && typeof socket.emit === 'function') {
           throttledLocationUpdate(locationData);
         } else {
-          console.log('Socket bağlantısı yok veya emit metodu bulunamadı (throttled)');
+          console.warn('⚠️ Konum güncellendi ama socket bağlı değil (throttled)');
         }
       },
       (error) => {
@@ -156,11 +156,11 @@ export const useGeolocation = () => {
   const throttledLocationUpdate = useRef(
     throttle((locationData) => {
       try {
-        if (socket && typeof socket.emit === 'function') {
+        if (socket && socket.connected && typeof socket.emit === 'function') {
           socket.emit('location_update', locationData);
           console.log('📍 Konum güncellendi (throttled):', locationData);
         } else {
-          console.log('Socket emit yapılamıyor - bağlantı yok');
+          console.warn('⚠️ Throttled update: Socket bağlı değil');
         }
       } catch (error) {
         console.error('❌ Konum gönderme hatası:', error);
