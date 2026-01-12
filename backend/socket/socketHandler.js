@@ -140,6 +140,21 @@ module.exports = (io, redisLocationService) => {
             socket.emit('room_locations_initial', { locations });
             console.log(`📍 ${locations.length} konum bilgisi gönderildi: ${socket.user.username}`);
           }
+
+          // Also broadcast THIS user's location to others in the room (if they have one)
+          const myLocation = await redisLocationService.getUserLocation(socket.user._id.toString());
+          if (myLocation) {
+            socket.to(roomId.toString()).emit('user_location_update', {
+              userId: socket.user._id.toString(),
+              username: socket.user.username,
+              location: {
+                latitude: myLocation.latitude,
+                longitude: myLocation.longitude,
+                timestamp: myLocation.timestamp || Date.now()
+              }
+            });
+            console.log(`📡 Yeni katılan kullanıcının konumu broadcast edildi: ${socket.user.username} → room ${roomId}`);
+          }
         }
 
       } catch (error) {
