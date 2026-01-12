@@ -227,6 +227,14 @@ module.exports = (io, redisLocationService) => {
 
     // Konum güncelleme (Frontend'den 'location_update' geliyor)
     socket.on('location_update', async (data) => {
+      console.log('🔔 [DEBUG] Location update event alındı:', {
+        user: socket.user?.username,
+        data,
+        hasRedis: !!redisLocationService,
+        redisConnected: redisLocationService?.isConnected,
+        currentRoom: socket.user?.currentRoom
+      });
+
       try {
         const { latitude, longitude } = data;
         const roomId = socket.user.currentRoom;
@@ -247,11 +255,13 @@ module.exports = (io, redisLocationService) => {
           });
 
           console.log(`📍 ${socket.user.username} konumu güncellendi: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        } else {
+          console.warn('⚠️ Redis bağlı değil, konum kaydedilemedi');
         }
 
         // Odadaki diğer kullanıcılara bildir (sadece aynı odadaysa)
         if (roomId) {
-          socket.to(roomId.toString()).emit('user_location_update', {
+          const locationUpdate = {
             userId: socket.user._id.toString(),
             username: socket.user.username,
             location: {
@@ -259,7 +269,12 @@ module.exports = (io, redisLocationService) => {
               longitude,
               timestamp: Date.now()
             }
-          });
+          };
+
+          socket.to(roomId.toString()).emit('user_location_update', locationUpdate);
+          console.log(`📡 Konum broadcast edildi: ${socket.user.username} → room ${roomId}`);
+        } else {
+          console.warn('⚠️ Kullanıcı odada değil, broadcast yapılmadı');
         }
 
       } catch (error) {
