@@ -9,3 +9,5 @@
 # Build folders
 /build
 /dist
+.vscode/
+*.db

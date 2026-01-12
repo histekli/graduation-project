@@ -15,6 +15,8 @@ module.exports = (io, redisLocationService) => {
     // Initialize Mediasoup SFU handlers for this socket
     mediasoupSocketHandler(io, socket);
 
+    console.log(`🔍 [DEBUG] Socket handlers initialized for ${socket.user.username}, Redis available: ${!!redisLocationService}`);
+
     try {
       // Kullanıcıyı online yap ve socket ID'yi kaydet
       await socket.user.setOnline(socket.id);
@@ -226,6 +228,7 @@ module.exports = (io, redisLocationService) => {
     });
 
     // Konum güncelleme (Frontend'den 'location_update' geliyor)
+    console.log(`📍 [INIT] Location update handler kaydediliyor for ${socket.user.username}`);
     socket.on('location_update', async (data) => {
       console.log('🔔 [DEBUG] Location update event alındı:', {
         user: socket.user?.username,
