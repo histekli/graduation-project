@@ -43,16 +43,16 @@ const Layout = () => {
               {user ? (
                 /* Authenticated Navigation */
                 <div className="flex items-center space-x-4">
-                  <Link 
-                    to="/dashboard" 
+                  <Link
+                    to="/dashboard"
                     className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     <FaHome className="text-sm" />
                     <span className="hidden sm:inline">Anasayfa</span>
                   </Link>
 
-                  <Link 
-                    to="/profile" 
+                  <Link
+                    to="/profile"
                     className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     <FaUser className="text-sm" />
@@ -62,8 +62,8 @@ const Layout = () => {
                   {/* User Info */}
                   <div className="flex items-center space-x-2">
                     {user.avatar ? (
-                      <img 
-                        src={user.avatar} 
+                      <img
+                        src={user.avatar}
                         alt={user.username}
                         className="w-8 h-8 rounded-full"
                       />
@@ -90,14 +90,14 @@ const Layout = () => {
               ) : (
                 /* Unauthenticated Navigation */
                 <div className="flex items-center space-x-4">
-                  <Link 
-                    to="/login" 
+                  <Link
+                    to="/login"
                     className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Giriş Yap
                   </Link>
-                  <Link 
-                    to="/register" 
+                  <Link
+                    to="/register"
                     className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors"
                   >
                     Kayıt Ol
@@ -116,16 +116,16 @@ const Layout = () => {
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <FaCar className="text-primary-500" />
-              <span className="text-gray-600">
-                © 2024 CarVoice - WebRTC Araç İçi İletişim Sistemi
+            <div className="flex items-center space-x-2 mb-2 md:mb-0">
+              <FaCar className="text-primary-500 text-sm sm:text-base" />
+              <span className="text-gray-600 text-xs sm:text-sm">
+                © 2026 CarVoice - WebRTC Sistem
               </span>
             </div>
             <div className="text-sm text-gray-500">
-              CSE Bitirme Projesi
+              GTU CSE Bitirme Projesi
             </div>
           </div>
         </div>
