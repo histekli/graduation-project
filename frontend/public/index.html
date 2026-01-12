@@ -46,5 +46,20 @@
   <body>
     <noscript>Bu uygulamayı çalıştırmak için JavaScript'i etkinleştirmeniz gerekir.</noscript>
     <div id="root"></div>
+    
+    <!-- Eruda Mobile Debug Console (Sadece ?debug=true ile aktif) -->
+    <script>
+      // URL'de "debug=true" parametresi varsa Eruda'yı yükle
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('debug') === 'true') {
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/eruda";
+        script.onload = () => {
+          eruda.init();
+          console.log('🔧 Eruda Debug Console aktif! Sağ alt köşedeki ikona tıklayın.');
+        };
+        document.body.appendChild(script);
+      }
+    </script>
   </body>
 </html>
