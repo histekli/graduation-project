@@ -165,6 +165,10 @@ module.exports = (io, redisLocationService) => {
         const remainingUsers = await User.find({ currentRoom: roomId });
         console.log(`👥 [DEBUG] Odada Kalanlar:`, remainingUsers.map(u => `${u.username} (${u._id})`));
 
+        // Mediasoup Cleanup - Kullanıcı odadan manuel çıkarsa kaynaklarını temizle (Zombie Producer Önleme)
+        const mediasoupManager = require('../mediasoup/manager');
+        await mediasoupManager.cleanupSocket(socket.id);
+
       } catch (error) {
         console.error('❌ Leave room hatası:', error);
         socket.emit('error', { message: 'Odadan ayrılma hatası' });
@@ -209,49 +213,45 @@ module.exports = (io, redisLocationService) => {
       }
     });
 
-    // Konum güncelleme (Redis ile)
-    socket.on('update_location', async (data) => {
+    // Konum güncelleme (Frontend'den 'location_update' geliyor)
+    socket.on('location_update', async (data) => {
       try {
-        const { latitude, longitude, roomId } = data;
+        const { latitude, longitude } = data;
+        const roomId = socket.user.currentRoom;
 
         if (!latitude || !longitude) {
-          return socket.emit('error', { message: 'Konum bilgisi gerekli' });
+          console.warn('⚠️ Eksik konum bilgisi:', data);
+          return;
         }
 
-        // Redis'e kaydet
+        // Redis'e kaydet (GEO ile)
         if (redisLocationService && redisLocationService.isConnected) {
-          await redisLocationService.updateUserLocation(
-            socket.userId.toString(),
+          await redisLocationService.setUserLocation(socket.user._id.toString(), {
             latitude,
             longitude,
-            {
-              username: socket.user.username,
-              avatar: socket.user.avatar
-            }
-          );
+            username: socket.user.username,
+            avatar: socket.user.avatar,
+            roomId: roomId ? roomId.toString() : null
+          });
 
-          // Yakındaki kullanıcıları bul
-          const nearbyUsers = await redisLocationService.findNearbyUsers(
-            latitude,
-            longitude,
-            10 // 10km radius
-          );
-
-          socket.emit('nearby_users', { users: nearbyUsers });
+          console.log(`📍 ${socket.user.username} konumu güncellendi: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         }
 
-        // Odadaki diğer kullanıcılara bildir
+        // Odadaki diğer kullanıcılara bildir (sadece aynı odadaysa)
         if (roomId) {
-          socket.to(roomId.toString()).emit('user_location_updated', {
-            userId: socket.user._id,
+          socket.to(roomId.toString()).emit('user_location_update', {
+            userId: socket.user._id.toString(),
             username: socket.user.username,
-            location: { latitude, longitude }
+            location: {
+              latitude,
+              longitude,
+              timestamp: Date.now()
+            }
           });
         }
 
       } catch (error) {
-        console.error('❌ Update location hatası:', error);
-        socket.emit('error', { message: 'Konum güncelleme hatası' });
+        console.error('❌ Location update hatası:', error);
       }
     });
 
