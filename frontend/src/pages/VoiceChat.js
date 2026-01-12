@@ -620,348 +620,346 @@ const VoiceChat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+      {/* Üst Bar - Sabit Yükseklik */}
+      <div className="flex-none bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">
-                {room?.name || `Oda ${roomId}`}
-              </h1>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <Users size={16} />
-                <span>{roomUsers.length} kullanıcı</span>
-              </div>
+              <h1 className="text-xl font-bold text-gray-900">{room?.name || 'Sesli Sohbet'}</h1>
+              {connected && (
+                <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
+                  Bağlı
+                </span>
+              )}
             </div>
-
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              {/* Ağ Gecikmesi */}
+              <div className="hidden sm:flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-md">
+                <span className="text-xs text-gray-600">📡</span>
+                <span className="text-sm font-medium">{networkLatency}ms</span>
+              </div>
+              {/* Harita Toggle */}
               <button
                 onClick={() => setIsMapVisible(!isMapVisible)}
                 className={`p-2 rounded-md ${isMapVisible ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 <MapPin size={20} />
               </button>
-
+              {/* Ayrıl Butonu */}
               <button
                 onClick={handleLeaveRoom}
-                className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
+                className="flex items-center space-x-1 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
               >
                 <LogOut size={16} />
-                <span>Ayrıl</span>
+                <span className="hidden sm:inline">Ayrıl</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Güvenlik uyarısı */}
-        <SecurityWarning />
+      {/* Ana İçerik - Kalan Alan */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Güvenlik Uyarısı - Compact */}
+          <SecurityWarning />
 
-        {/* Debug Paneli - Geliştirme için */}
-        <div className={`mb-4 p-3 border rounded-lg text-xs ${window.location.protocol === 'https:'
-          ? 'bg-green-50 border-green-200 text-green-800'
-          : 'bg-yellow-50 border-yellow-200 text-yellow-800'
-          }`}>
-          <div className="flex items-center justify-between">
-            <span className="text-sm">📡 Ağ Gecikmesi:</span>
-            <strong className="text-lg">{networkLatency}ms</strong>
-          </div>
-        </div>
+          {/* Grid Layout - Tek Ekran */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100%-1rem)]">
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* Ana İçerik - Harita */}
-          <div className="lg:col-span-2">
-            {isMapVisible ? (
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="p-4 border-b">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-medium text-gray-900">Konum Haritası</h2>
-                    {!isTracking && (
-                      <button
-                        onClick={handleEnableLocation}
-                        className="px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
-                      >
-                        Konumu Etkinleştir
-                      </button>
+            {/* Ana İçerik - Harita */}
+            <div className="lg:col-span-2">
+              {isMapVisible ? (
+                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="p-4 border-b">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-medium text-gray-900">Konum Haritası</h2>
+                      {!isTracking && (
+                        <button
+                          onClick={handleEnableLocation}
+                          className="px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
+                        >
+                          Konumu Etkinleştir
+                        </button>
+                      )}
+                    </div>
+                    {locationError && (
+                      <div className="text-red-600 text-sm mt-2">
+                        ⚠️ {locationError}
+                      </div>
                     )}
                   </div>
-                  {locationError && (
-                    <div className="text-red-600 text-sm mt-2">
-                      ⚠️ {locationError}
+
+                  <div className="h-96 lg:h-[500px]">
+                    <VoiceMap
+                      currentPosition={position}
+                      nearbyUsers={nearbyUsersWithDistance}
+                      talkingUsers={talkingUsers}
+                      onUserClick={handleUserClick}
+                      className="h-full"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-md p-8 text-center">
+                  <MapPin size={48} className="text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Harita Gizlendi</h3>
+                  <p className="text-gray-600 mb-4">
+                    Yakınınızdaki kullanıcıları görmek için haritayı etkinleştirin
+                  </p>
+                  <button
+                    onClick={() => setIsMapVisible(true)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  >
+                    Haritayı Göster
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Yan Panel - Ses Kontrolü */}
+            <div className="space-y-6">
+
+              {/* Push-to-Talk */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="p-4 border-b">
+                  <h3 className="text-lg font-medium text-gray-900">Ses Kontrolü</h3>
+                </div>
+
+                <div className="p-4">
+                  {!audioEnabled ? (
+                    <div className="space-y-4">
+
+
+                      {/* API desteklenmiyorsa uyarı */}
+                      {checkMediaDevicesSupport() === 'none' && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="text-red-800 text-sm">
+                            <strong>⚠️ Uyumsuz Tarayıcı</strong>
+                            <br />
+                            Bu tarayıcı mikrofon erişimini desteklemiyor.
+                            Lütfen güncel Chrome, Firefox veya Safari kullanın.
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Güvenlik sorunu uyarısı */}
+                      {checkMediaDevicesSupport() === 'security-blocked' && (
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="text-yellow-800 text-sm">
+                            <strong>🔒 Güvenlik Kısıtlaması</strong>
+                            <br />
+                            HTTP bağlantılarda mikrofon erişimi güvenlik nedeniyle engellenmiştir.
+                            <br />
+                            <strong>📱 Mobil Çözüm:</strong>
+                            <br />
+                            <div className="mt-3 p-3 bg-white rounded-lg border border-yellow-300">
+                              <strong>🌐 HTTPS Adresi:</strong><br />
+                              <code className="text-blue-600">
+                                https://{window.location.hostname}:3443{window.location.pathname}
+                              </code>
+                              <br />
+                              <button
+                                onClick={() => {
+                                  const httpsUrl = `https://${window.location.hostname}:3443${window.location.pathname}${window.location.search}`;
+                                  window.location.href = httpsUrl;
+                                }}
+                                className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                              >
+                                🔒 HTTPS'e Geç
+                              </button>
+                            </div>
+                            <br />
+                            <strong>💻 Masaüstü Çözüm:</strong>
+                            <br />
+                            • Chrome: chrome://flags/#unsafely-treat-insecure-origin-as-secure
+                            <br />
+                            • Firefox: about:config → media.navigator.permission.disabled
+                            <br />
+                            <em>⚠️ Not: Bu ayarlar sadece geliştirme için önerilir.</em>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Mobil ve Masaüstü Etkinleştirme */}
+                      <div className="text-center">
+                        <Volume2 size={48} className="text-gray-300 mx-auto mb-4" />
+                        <h4 className="text-lg font-medium text-gray-900 mb-2">Ses Erişimi</h4>
+
+
+
+                        <p className="text-gray-600 mb-4">
+                          Konuşmak için mikrofonunuza erişim izni gerekli
+                        </p>
+
+                        <div className="space-y-3">
+                          <button
+                            onClick={() => {
+                              // Using the new separated method
+                              enableMicrophone().catch(err => setError('Mikrofon hatası: ' + err.message));
+                            }}
+                            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-lg shadow-md transition-all w-full"
+                          >
+                            🎤 Mikrofonu Etkinleştir
+                          </button>
+
+
+                        </div>
+
+                        {/* Mobil için ek ipuçları */}
+                        {/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && (
+                          <div className="mt-4 text-xs text-gray-500">
+                            <p>💡 İpucu: Mikrofon izni vermezseniz ses özelliklerini kullanamazsınız</p>
+                            <p>🔄 Sorun yaşarsanız sayfayı yenileyin ve tekrar deneyin</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <PushToTalkButton
+                      onStartTalking={handleStartTalking}
+                      onStopTalking={handleStopTalking}
+                      isTalking={isTalking}
+                      isConnected={isConnected}
+                      remoteStreams={remoteStreams}
+                      localStream={localStream}
+                      nearbyUsersCount={nearbyUsersWithDistance.length}
+                      audioPermissionGranted={audioPermissionGranted}
+                      audioEnabled={audioEnabled}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Kullanıcı Listesi */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="p-4 border-b">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Kullanıcılar ({roomUsers.length})
+                  </h3>
+                </div>
+
+                <div className="max-h-64 overflow-y-auto">
+                  {roomUsers.map((roomUser) => (
+                    <div
+                      key={roomUser._id}
+                      className={`p-3 border-b border-gray-100 ${talkingUsers.includes(roomUser._id) ? 'bg-red-50' : ''
+                        }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${talkingUsers.includes(roomUser._id) ? 'bg-red-500 animate-pulse' : 'bg-blue-500'
+                            }`}>
+                            {roomUser.username.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">{roomUser.username}</div>
+                            {roomUser.location && position && (
+                              <div className="text-xs text-gray-500">
+                                {calculateDistance(
+                                  position.latitude,
+                                  position.longitude,
+                                  roomUser.location.latitude,
+                                  roomUser.location.longitude
+                                ).toFixed(1)}km uzaklık
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {talkingUsers.includes(roomUser._id) && (
+                          <span className="text-red-500 text-xs font-medium">
+                            🎤 Konuşuyor
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Ses Barı - Sadece konuşanlar için göster */}
+                      {talkingUsers.includes(roomUser._id) && (
+                        <div className="w-full mt-2">
+                          {user && user._id === roomUser._id && localStream ? (
+                            // Kendi ses barımız (konuşuyorsak)
+                            <AudioWaveform
+                              audioStream={localStream}
+                              isActive={true}
+                              height={30}
+                              color="#ef4444"
+                            />
+                          ) : remoteStreams instanceof Map && remoteStreams.has(roomUser._id) ? (
+                            // Diğer kullanıcıların ses barları (konuşuyorlarsa)
+                            <AudioWaveform
+                              audioStream={remoteStreams.get(roomUser._id)}
+                              isActive={true}
+                              height={30}
+                              color="#ef4444"
+                            />
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {roomUsers.length === 0 && (
+                    <div className="p-4 text-center text-gray-500">
+                      Henüz başka kullanıcı yok
                     </div>
                   )}
                 </div>
-
-                <div className="h-96 lg:h-[500px]">
-                  <VoiceMap
-                    currentPosition={position}
-                    nearbyUsers={nearbyUsersWithDistance}
-                    talkingUsers={talkingUsers}
-                    onUserClick={handleUserClick}
-                    className="h-full"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                <MapPin size={48} className="text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Harita Gizlendi</h3>
-                <p className="text-gray-600 mb-4">
-                  Yakınınızdaki kullanıcıları görmek için haritayı etkinleştirin
-                </p>
-                <button
-                  onClick={() => setIsMapVisible(true)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                >
-                  Haritayı Göster
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Yan Panel - Ses Kontrolü */}
-          <div className="space-y-6">
-
-            {/* Push-to-Talk */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-4 border-b">
-                <h3 className="text-lg font-medium text-gray-900">Ses Kontrolü</h3>
               </div>
 
-              <div className="p-4">
-                {!audioEnabled ? (
-                  <div className="space-y-4">
-
-
-                    {/* API desteklenmiyorsa uyarı */}
-                    {checkMediaDevicesSupport() === 'none' && (
-                      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="text-red-800 text-sm">
-                          <strong>⚠️ Uyumsuz Tarayıcı</strong>
-                          <br />
-                          Bu tarayıcı mikrofon erişimini desteklemiyor.
-                          Lütfen güncel Chrome, Firefox veya Safari kullanın.
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Güvenlik sorunu uyarısı */}
-                    {checkMediaDevicesSupport() === 'security-blocked' && (
-                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div className="text-yellow-800 text-sm">
-                          <strong>🔒 Güvenlik Kısıtlaması</strong>
-                          <br />
-                          HTTP bağlantılarda mikrofon erişimi güvenlik nedeniyle engellenmiştir.
-                          <br />
-                          <strong>📱 Mobil Çözüm:</strong>
-                          <br />
-                          <div className="mt-3 p-3 bg-white rounded-lg border border-yellow-300">
-                            <strong>🌐 HTTPS Adresi:</strong><br />
-                            <code className="text-blue-600">
-                              https://{window.location.hostname}:3443{window.location.pathname}
-                            </code>
-                            <br />
-                            <button
-                              onClick={() => {
-                                const httpsUrl = `https://${window.location.hostname}:3443${window.location.pathname}${window.location.search}`;
-                                window.location.href = httpsUrl;
-                              }}
-                              className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                            >
-                              🔒 HTTPS'e Geç
-                            </button>
-                          </div>
-                          <br />
-                          <strong>💻 Masaüstü Çözüm:</strong>
-                          <br />
-                          • Chrome: chrome://flags/#unsafely-treat-insecure-origin-as-secure
-                          <br />
-                          • Firefox: about:config → media.navigator.permission.disabled
-                          <br />
-                          <em>⚠️ Not: Bu ayarlar sadece geliştirme için önerilir.</em>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Mobil ve Masaüstü Etkinleştirme */}
-                    <div className="text-center">
-                      <Volume2 size={48} className="text-gray-300 mx-auto mb-4" />
-                      <h4 className="text-lg font-medium text-gray-900 mb-2">Ses Erişimi</h4>
-
-
-
-                      <p className="text-gray-600 mb-4">
-                        Konuşmak için mikrofonunuza erişim izni gerekli
-                      </p>
-
-                      <div className="space-y-3">
-                        <button
-                          onClick={() => {
-                            // Using the new separated method
-                            enableMicrophone().catch(err => setError('Mikrofon hatası: ' + err.message));
-                          }}
-                          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-lg shadow-md transition-all w-full"
-                        >
-                          🎤 Mikrofonu Etkinleştir
-                        </button>
-
-
-                      </div>
-
-                      {/* Mobil için ek ipuçları */}
-                      {/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && (
-                        <div className="mt-4 text-xs text-gray-500">
-                          <p>💡 İpucu: Mikrofon izni vermezseniz ses özelliklerini kullanamazsınız</p>
-                          <p>🔄 Sorun yaşarsanız sayfayı yenileyin ve tekrar deneyin</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <PushToTalkButton
-                    onStartTalking={handleStartTalking}
-                    onStopTalking={handleStopTalking}
-                    isTalking={isTalking}
-                    isConnected={isConnected}
-                    remoteStreams={remoteStreams}
-                    localStream={localStream}
-                    nearbyUsersCount={nearbyUsersWithDistance.length}
-                    audioPermissionGranted={audioPermissionGranted}
-                    audioEnabled={audioEnabled}
-                  />
-                )}
-              </div>
             </div>
-
-            {/* Kullanıcı Listesi */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-4 border-b">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Kullanıcılar ({roomUsers.length})
-                </h3>
-              </div>
-
-              <div className="max-h-64 overflow-y-auto">
-                {roomUsers.map((roomUser) => (
-                  <div
-                    key={roomUser._id}
-                    className={`p-3 border-b border-gray-100 ${talkingUsers.includes(roomUser._id) ? 'bg-red-50' : ''
-                      }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${talkingUsers.includes(roomUser._id) ? 'bg-red-500 animate-pulse' : 'bg-blue-500'
-                          }`}>
-                          {roomUser.username.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{roomUser.username}</div>
-                          {roomUser.location && position && (
-                            <div className="text-xs text-gray-500">
-                              {calculateDistance(
-                                position.latitude,
-                                position.longitude,
-                                roomUser.location.latitude,
-                                roomUser.location.longitude
-                              ).toFixed(1)}km uzaklık
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {talkingUsers.includes(roomUser._id) && (
-                        <span className="text-red-500 text-xs font-medium">
-                          🎤 Konuşuyor
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Ses Barı - Sadece konuşanlar için göster */}
-                    {talkingUsers.includes(roomUser._id) && (
-                      <div className="w-full mt-2">
-                        {user && user._id === roomUser._id && localStream ? (
-                          // Kendi ses barımız (konuşuyorsak)
-                          <AudioWaveform
-                            audioStream={localStream}
-                            isActive={true}
-                            height={30}
-                            color="#ef4444"
-                          />
-                        ) : remoteStreams instanceof Map && remoteStreams.has(roomUser._id) ? (
-                          // Diğer kullanıcıların ses barları (konuşuyorlarsa)
-                          <AudioWaveform
-                            audioStream={remoteStreams.get(roomUser._id)}
-                            isActive={true}
-                            height={30}
-                            color="#ef4444"
-                          />
-                        ) : null}
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {roomUsers.length === 0 && (
-                  <div className="p-4 text-center text-gray-500">
-                    Henüz başka kullanıcı yok
-                  </div>
-                )}
-              </div>
-            </div>
-
           </div>
         </div>
-      </div>
 
-      {/* Chat Box Component */}
-      {room && socket && user && (
-        <ChatBox
-          socket={socket}
-          roomId={roomId}
-          user={user}
-          isOpen={isChatOpen}
-          onToggle={() => setIsChatOpen(!isChatOpen)}
-        />
-      )}
-      {/* Audio Playback Elements - INVISIBLE */}
-      {/* Audio Playback Elements - INVISIBLE */}
-      {Array.from(remoteStreams).map(([userId, stream]) => {
-        // Only render if stream is active and has tracks
-        if (stream && stream.active && stream.getAudioTracks().length > 0) {
-          return (
-            <audio
-              key={userId}
-              ref={el => {
-                if (el) {
-                  if (el.srcObject !== stream) {
-                    el.srcObject = stream;
+        {/* Chat Box Component */}
+        {room && socket && user && (
+          <ChatBox
+            socket={socket}
+            roomId={roomId}
+            user={user}
+            isOpen={isChatOpen}
+            onToggle={() => setIsChatOpen(!isChatOpen)}
+          />
+        )}
+        {/* Audio Playback Elements - INVISIBLE */}
+        {/* Audio Playback Elements - INVISIBLE */}
+        {Array.from(remoteStreams).map(([userId, stream]) => {
+          // Only render if stream is active and has tracks
+          if (stream && stream.active && stream.getAudioTracks().length > 0) {
+            return (
+              <audio
+                key={userId}
+                ref={el => {
+                  if (el) {
+                    if (el.srcObject !== stream) {
+                      el.srcObject = stream;
+                    }
+                    // Attempt to play immediately
+                    el.play().catch(e => {
+                      console.warn(`⚠️ Autoplay prevented for ${userId}, waiting for interaction:`, e);
+                      // Add a one-time click listener to document to retry play
+                      const retryPlay = () => {
+                        el.play().catch(err => console.error('❌ Retry play failed:', err));
+                        document.removeEventListener('click', retryPlay);
+                        document.removeEventListener('touchstart', retryPlay);
+                      };
+                      document.addEventListener('click', retryPlay);
+                      document.addEventListener('touchstart', retryPlay);
+                    });
                   }
-                  // Attempt to play immediately
-                  el.play().catch(e => {
-                    console.warn(`⚠️ Autoplay prevented for ${userId}, waiting for interaction:`, e);
-                    // Add a one-time click listener to document to retry play
-                    const retryPlay = () => {
-                      el.play().catch(err => console.error('❌ Retry play failed:', err));
-                      document.removeEventListener('click', retryPlay);
-                      document.removeEventListener('touchstart', retryPlay);
-                    };
-                    document.addEventListener('click', retryPlay);
-                    document.addEventListener('touchstart', retryPlay);
-                  });
-                }
-              }}
-              autoPlay
-              playsInline
-              controls={false}
-              style={{ display: 'none' }}
-            />
-          );
-        }
-        return null;
-      })}
+                }}
+                autoPlay
+                playsInline
+                controls={false}
+                style={{ display: 'none' }}
+              />
+            );
+          }
+          return null;
+        })}
+      </div>
     </div>
   );
 };
