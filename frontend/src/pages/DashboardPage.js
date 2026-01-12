@@ -624,13 +624,6 @@ const DashboardPage = () => {
               </div>
               <div className="p-6 space-y-3">
                 <Link
-                  to="/voice/test"
-                  className="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
-                >
-                  <Mic size={20} className="text-blue-600" />
-                  <span>Ses Testi Yap</span>
-                </Link>
-                <Link
                   to="/profile"
                   className="flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
                 >

@@ -44,30 +44,30 @@ const talkingUserIcon = new L.Icon({
 // Harita merkezini güncelleme komponenti
 const MapUpdater = ({ center }) => {
   const map = useMap();
-  
+
   useEffect(() => {
     if (center) {
       map.setView(center, map.getZoom());
     }
   }, [center, map]);
-  
+
   return null;
 };
 
-const VoiceMap = ({ 
-  currentPosition, 
-  nearbyUsers = [], 
+const VoiceMap = ({
+  currentPosition,
+  nearbyUsers = [],
   talkingUsers = [],
   onUserClick,
-  className = "" 
+  className = ""
 }) => {
   const mapRef = useRef(null);
 
   // Varsayılan konum (Türkiye - Ankara)
   const defaultCenter = [39.9334, 32.8597];
-  
+
   // Harita merkezi belirleme
-  const mapCenter = currentPosition 
+  const mapCenter = currentPosition
     ? [currentPosition.latitude, currentPosition.longitude]
     : defaultCenter;
 
@@ -82,6 +82,11 @@ const VoiceMap = ({
     if (isUserTalking(userId)) return talkingUserIcon;
     return userIcon;
   };
+
+  // Debug: Kaç kullanıcı render ediliyor?
+  useEffect(() => {
+    console.log(`🗺️ VoiceMap: ${nearbyUsers.length} kullanıcı render ediliyor:`, nearbyUsers.map(u => u.username));
+  }, [nearbyUsers]);
 
   // Mesafe hesaplama ve formatı
   const formatDistance = (distance) => {
@@ -104,13 +109,13 @@ const VoiceMap = ({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
+
         {/* Harita merkezi güncelleme */}
         <MapUpdater center={mapCenter} />
-        
+
         {/* Mevcut kullanıcı konumu */}
         {currentPosition && (
-          <Marker 
+          <Marker
             position={[currentPosition.latitude, currentPosition.longitude]}
             icon={currentUserIcon}
           >
@@ -127,7 +132,7 @@ const VoiceMap = ({
             </Popup>
           </Marker>
         )}
-        
+
         {/* Yakındaki kullanıcılar */}
         {nearbyUsers.map((user) => (
           user.location && (
@@ -155,12 +160,12 @@ const VoiceMap = ({
                     </div>
                   )}
                   <div className="text-xs text-gray-500">
-                    Son güncelleme: {user.location.timestamp ? 
-                      new Date(user.location.timestamp).toLocaleTimeString() : 
+                    Son güncelleme: {user.location.timestamp ?
+                      new Date(user.location.timestamp).toLocaleTimeString() :
                       'Bilinmiyor'
                     }
                   </div>
-                  <button 
+                  <button
                     onClick={() => onUserClick && onUserClick(user)}
                     className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
                   >
@@ -172,7 +177,7 @@ const VoiceMap = ({
           )
         ))}
       </MapContainer>
-      
+
       {/* Harita kontrolleri */}
       <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2 z-[1000]">
         <div className="text-xs text-gray-600 space-y-1">
@@ -190,7 +195,7 @@ const VoiceMap = ({
           </div>
         </div>
       </div>
-      
+
       {/* Konum durumu */}
       {!currentPosition && (
         <div className="absolute top-4 left-4 bg-yellow-100 border border-yellow-300 rounded-lg p-3 z-[1000]">

@@ -664,36 +664,10 @@ const VoiceChat = () => {
           ? 'bg-green-50 border-green-200 text-green-800'
           : 'bg-yellow-50 border-yellow-200 text-yellow-800'
           }`}>
-          <strong>
-            {window.location.protocol === 'https:' ? '✅ HTTPS Aktif' : '⚠️ HTTP Modu'} - Debug Bilgileri:
-          </strong><br />
-          Protokol: <strong>{window.location.protocol}</strong><br />
-          Host: {window.location.hostname}<br />
-          Port: {window.location.port}<br />
-          Güvenli Context: <strong>{window.isSecureContext ? 'Evet ✅' : 'Hayır ❌'}</strong><br />
-          MediaDevices Desteği: <strong className={
-            checkMediaDevicesSupport() === 'modern' ? 'text-green-600' :
-              checkMediaDevicesSupport() === 'legacy' ? 'text-yellow-600' :
-                'text-red-600'
-          }>{checkMediaDevicesSupport()}</strong><br />
-          navigator.mediaDevices: {navigator.mediaDevices ? 'Evet ✅' : 'Hayır ❌'}<br />
-          getUserMedia: {navigator.mediaDevices?.getUserMedia ? 'Evet ✅' : 'Hayır ❌'}<br />
-          Legacy getUserMedia: {(navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia) ? 'Evet' : 'Hayır'}<br />
-          Mobil: {isMobile() ? 'Evet 📱' : 'Hayır 💻'}<br />
-          IOS: {isIOS() ? 'Evet' : 'Hayır'}<br />
-          <strong>Gecikme (RTT): {networkLatency}ms</strong>
-          iOS: {isIOS() ? 'Evet 🍎' : 'Hayır'}<br />
-          {window.location.protocol === 'http:' && (
-            <div className="mt-2 p-2 bg-yellow-100 rounded border">
-              <strong>🔄 HTTP Tespit Edildi!</strong><br />
-              <a
-                href={`https://${window.location.hostname}:3443${window.location.pathname}${window.location.search}`}
-                className="text-blue-600 underline"
-              >
-                🔒 HTTPS'e Geçmek İçin Tıklayın
-              </a>
-            </div>
-          )}
+          <div className="flex items-center justify-between">
+            <span className="text-sm">📡 Ağ Gecikmesi:</span>
+            <strong className="text-lg">{networkLatency}ms</strong>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
