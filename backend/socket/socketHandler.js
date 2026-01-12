@@ -56,21 +56,30 @@ module.exports = (io, redisLocationService) => {
 
         console.log(`📍 ${socket.user.username} odaya katılıyor: ${roomId}`);
 
-        // Eski odadan ayrıl
-        if (socket.user.currentRoom) {
-          socket.leave(socket.user.currentRoom.toString());
-          socket.to(socket.user.currentRoom.toString()).emit('user_left', {
-            user: {
-              _id: socket.user._id,
-              username: socket.user.username
-            }
-          });
-        }
+        // Eski odadan ayrıl - TÜM odalarda temizlik
+        console.log(`🔍 [DEBUG] ${socket.user.username} şu odalarda: [${Array.from(socket.rooms).join(', ')}]`);
+
+        // Socket.IO otomatik olarak socket.id room'u ekler, onu hariç tut
+        socket.rooms.forEach(room => {
+          if (room !== socket.id) {
+            console.log(`🚪 ${socket.user.username} ${room} odasından ayrılıyor...`);
+            socket.leave(room);
+            // Diğer kullanıcılara bildir
+            socket.to(room).emit('user_left', {
+              user: {
+                _id: socket.user._id,
+                username: socket.user.username
+              }
+            });
+          }
+        });
 
         // Yeni odaya katıl
         socket.join(roomId.toString());
         await User.findByIdAndUpdate(socket.user._id, { currentRoom: roomId });
         socket.user.currentRoom = roomId; // Update local socket user object for immediate use
+
+        console.log(`✅ ${socket.user.username} şimdi sadece ${roomId} odasında`);
 
         // Oda bilgilerini al
         const room = await Room.findById(roomId).populate('users.user', 'username avatar isOnline');
