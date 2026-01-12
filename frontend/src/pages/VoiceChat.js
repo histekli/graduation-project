@@ -230,6 +230,13 @@ const VoiceChat = () => {
 
         // Odaya katıldığımızı localStorage'da işaretleyelim
         localStorage.setItem('current_room_id', data.room._id);
+
+        // Odaya başarıyla katıldıktan SONRA konum tracking'i başlat
+        // Bu, backend'de currentRoom set edildikten sonra olur
+        if (!isTracking) {
+          console.log('🔍 Odaya katılım başarılı, konum tracking otomatik başlatılıyor...');
+          startTracking();
+        }
       }
     };
 
