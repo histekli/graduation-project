@@ -128,6 +128,18 @@ module.exports = (io, redisLocationService) => {
           }
         }
 
+        // Send existing user locations to the newly joined user
+        if (redisLocationService && redisLocationService.isConnected) {
+          const userIds = roomUsers.map(u => u._id.toString());
+          const locations = await redisLocationService.getRoomUserLocations(roomId, userIds);
+
+          if (locations.length > 0) {
+            // Send all existing locations at once
+            socket.emit('room_locations_initial', { locations });
+            console.log(`📍 ${locations.length} konum bilgisi gönderildi: ${socket.user.username}`);
+          }
+        }
+
       } catch (error) {
         console.error('❌ Join room hatası:', error);
         socket.emit('error', { message: 'Odaya katılma hatası' });

@@ -48,24 +48,24 @@ export const useGeolocation = () => {
           accuracy: position.coords.accuracy,
           timestamp: Date.now()
         };
-        
+
         setPosition(locationData);
-        
+
         // Sunucuya konum gönder
         if (socket && typeof socket.emit === 'function') {
           socket.emit('location_update', locationData);
         } else {
           console.log('Socket bağlantısı yok veya emit metodu bulunamadı');
         }
-        
+
         console.log('📍 İlk konum alındı:', locationData);
       },
       (error) => {
         console.error('❌ Konum hatası kodu:', error.code, 'mesaj:', error.message);
-        
+
         // Daha kullanıcı dostu hata mesajları
         let errorMsg = 'Konum alınamadı';
-        switch(error.code) {
+        switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMsg = 'Konum izni reddedildi. Tarayıcı ayarlarından izin vermeniz gerekiyor.';
             break;
@@ -74,7 +74,7 @@ export const useGeolocation = () => {
             break;
           case error.TIMEOUT:
             errorMsg = 'Konum bilgisi alınamadı (zaman aşımı). Lütfen tekrar deneyin.';
-            
+
             // Zamanaşımı durumunda fallback konum kullan (Ankara)
             const fallbackLocation = {
               latitude: 39.9334,
@@ -92,7 +92,7 @@ export const useGeolocation = () => {
           default:
             errorMsg = `Konum hatası: ${error.message}`;
         }
-        
+
         setError(errorMsg);
       },
       geoOptions
@@ -107,22 +107,22 @@ export const useGeolocation = () => {
           accuracy: position.coords.accuracy,
           timestamp: Date.now()
         };
-        
+
         setPosition(locationData);
-        
-              // Sunucuya konum gönder (throttle ile)
-      if (socket && typeof socket.emit === 'function') {
-        throttledLocationUpdate(locationData);
-      } else {
-        console.log('Socket bağlantısı yok veya emit metodu bulunamadı (throttled)');
-      }
+
+        // Sunucuya konum gönder (throttle ile)
+        if (socket && typeof socket.emit === 'function') {
+          throttledLocationUpdate(locationData);
+        } else {
+          console.log('Socket bağlantısı yok veya emit metodu bulunamadı (throttled)');
+        }
       },
       (error) => {
         console.error('❌ Konum takip hatası kodu:', error.code, 'mesaj:', error.message);
-        
+
         // Daha kullanıcı dostu hata mesajları
         let errorMsg = 'Konum takibi yapılamıyor';
-        switch(error.code) {
+        switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMsg = 'Konum izni reddedildi. Tarayıcı ayarlarından izin vermeniz gerekiyor.';
             break;
@@ -135,7 +135,7 @@ export const useGeolocation = () => {
           default:
             errorMsg = `Konum hatası: ${error.message}`;
         }
-        
+
         setError(errorMsg);
       },
       geoOptions
@@ -173,21 +173,21 @@ export const useGeolocation = () => {
     const R = 6371; // Dünya yarıçapı (km)
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
   // Yakındaki kullanıcıları filtrele - useCallback ile optimize edildi
   const filterNearbyUsers = useCallback((users, maxDistance = 10) => {
     if (!position || !users || !Array.isArray(users)) return [];
-    
+
     return users.filter(user => {
       if (!user || !user.location || !user.location.latitude || !user.location.longitude) return false;
-      
+
       try {
         const distance = calculateDistance(
           position.latitude,
@@ -195,7 +195,7 @@ export const useGeolocation = () => {
           user.location.latitude,
           user.location.longitude
         );
-        
+
         return distance <= maxDistance;
       } catch (error) {
         console.error('❌ Mesafe hesaplama hatası:', error);
@@ -210,43 +210,60 @@ export const useGeolocation = () => {
       console.log('Socket bağlantısı yok veya on/off metodları bulunamadı');
       return;
     }
-    
+
     try {
+      // İlk odaya girişte tüm konumları al
+      socket.on('room_locations_initial', (data) => {
+        console.log('📍 Oda konumları yüklendi:', data.locations);
+        if (data.locations && Array.isArray(data.locations)) {
+          setNearbyUsers(data.locations.map(loc => ({
+            userId: loc.userId,
+            username: loc.username,
+            avatar: loc.avatar,
+            location: {
+              latitude: loc.latitude,
+              longitude: loc.longitude,
+              timestamp: loc.timestamp
+            }
+          })));
+        }
+      });
+
       // Diğer kullanıcıların konum güncellemelerini dinle
       socket.on('user_location_update', (userData) => {
         console.log('📍 Kullanıcı konumu güncellendi:', userData);
-        
+
         setNearbyUsers(prev => {
           const updated = prev.filter(user => user.userId !== userData.userId);
-          return [...updated, userData];
+          return [...updated, {
+            userId: userData.userId,
+            username: userData.username,
+            location: userData.location
+          }];
         });
       });
 
       // Kullanıcı odadan ayrıldığında listeden çıkar
-      socket.on('user_left_room', ({ userId }) => {
-        setNearbyUsers(prev => prev.filter(user => user.userId !== userId));
-      });
-
-      // Oda kullanıcıları listesi güncellendiğinde
-      socket.on('room_users_updated', (users) => {
-        const nearby = filterNearbyUsers(users);
-        setNearbyUsers(nearby);
+      socket.on('user_left', (data) => {
+        if (data && data.userId) {
+          setNearbyUsers(prev => prev.filter(user => user.userId !== data.userId));
+        }
       });
 
       return () => {
         try {
+          socket.off('room_locations_initial');
           socket.off('user_location_update');
-          socket.off('user_left_room');
-          socket.off('room_users_updated');
+          socket.off('user_left');
         } catch (error) {
           console.error('Socket event off hatası:', error);
         }
       };
     } catch (error) {
       console.error('Socket event dinleme hatası:', error);
-      return () => {};
+      return () => { };
     }
-  }, [socket, position, filterNearbyUsers]);
+  }, [socket]);
 
   // Component unmount'ta konum takibini durdur
   useEffect(() => {
