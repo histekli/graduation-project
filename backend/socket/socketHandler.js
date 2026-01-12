@@ -289,8 +289,12 @@ module.exports = (io, redisLocationService) => {
             }
           };
 
+          // Debug: Odadaki socket'leri göster
+          const roomSockets = await io.in(roomId.toString()).fetchSockets();
+          console.log(`🔍 [DEBUG] Room ${roomId} has ${roomSockets.length} sockets:`, roomSockets.map(s => s.user?.username || 'unknown'));
+
           socket.to(roomId.toString()).emit('user_location_update', locationUpdate);
-          console.log(`📡 Konum broadcast edildi: ${socket.user.username} → room ${roomId}`);
+          console.log(`📡 Konum broadcast edildi: ${socket.user.username} → room ${roomId} (${roomSockets.length - 1} alıcı)`);
         } else {
           console.warn('⚠️ Kullanıcı odada değil, broadcast yapılmadı');
         }
