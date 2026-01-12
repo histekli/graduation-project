@@ -264,7 +264,12 @@ module.exports = (io, redisLocationService) => {
 
       try {
         const { latitude, longitude } = data;
-        const roomId = socket.user.currentRoom;
+
+        // Socket'in GERÇEK room'unu bul (socket.id hariç)
+        const actualRoom = Array.from(socket.rooms).find(room => room !== socket.id);
+        const roomId = actualRoom || socket.user.currentRoom; // Fallback to DB value
+
+        console.log(`🔍 [DEBUG] ${socket.user.username} konum update - actualRoom: ${actualRoom}, dbRoom: ${socket.user.currentRoom}`);
 
         if (!latitude || !longitude) {
           console.warn('⚠️ Eksik konum bilgisi:', data);
