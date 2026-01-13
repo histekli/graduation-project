@@ -170,12 +170,7 @@ const LoginPage = () => {
             </p>
           </div>
 
-          {/* Demo Account Info */}
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700">
-              <strong>Demo Hesap:</strong> Hızlı test için demo verilerle giriş yapabilirsiniz.
-            </p>
-          </div>
+
         </div>
       </div>
     </div>
