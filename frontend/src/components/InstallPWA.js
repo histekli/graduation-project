@@ -70,7 +70,15 @@ const InstallPWA = () => {
         if (!isStandaloneMode) {
             const timer = setTimeout(() => {
                 const dismissed = localStorage.getItem('pwa-install-dismissed');
-                if (!dismissed || (Date.now() - parseInt(dismissed)) > 7 * 24 * 60 * 60 * 1000) {
+                const daysSinceDismiss = dismissed ? (Date.now() - parseInt(dismissed)) / (1000 * 60 * 60 * 24) : 999;
+
+                // Update debug info
+                if (dismissed) {
+                    setDebugInfo(prev => ({ ...prev, dismissed: true, daysSince: daysSinceDismiss.toFixed(1) }));
+                }
+
+                // Show prompt if never dismissed or dismissed more than 7 days ago
+                if (daysSinceDismiss >= 7) {
                     setShowInstallPrompt(true);
                 }
             }, 5000);
@@ -109,15 +117,6 @@ const InstallPWA = () => {
         setShowInstallPrompt(false);
         localStorage.setItem('pwa-install-dismissed', Date.now().toString());
     };
-
-    // Don't show if dismissed recently
-    const dismissedTime = localStorage.getItem('pwa-install-dismissed');
-    if (dismissedTime) {
-        const daysSince = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
-        if (daysSince < 7) {
-            setDebugInfo(prev => ({ ...prev, dismissed: true, daysSince: daysSince.toFixed(1) }));
-        }
-    }
 
     // Always show debug button on bottom-left
     return (
@@ -187,7 +186,7 @@ const InstallPWA = () => {
             )}
 
             {/* Install Prompt */}
-            {showInstallPrompt && !isStandalone && (dismissedTime ? (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24) >= 7 : true) && (
+            {showInstallPrompt && !isStandalone && (
                 <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-white rounded-lg shadow-2xl border-2 border-primary-200 p-4 z-50 animate-slide-up">
                     {/* Header */}
                     <div className="flex items-start justify-between mb-3">
