@@ -11,7 +11,8 @@ const PushToTalkButton = ({
   localStream,
   nearbyUsersCount = 0,
   audioPermissionGranted = false,
-  audioEnabled = false
+  audioEnabled = false,
+  roomUsers = []
 }) => {
   const [isTalkingActive, setIsTalkingActive] = useState(false);
   const audioRefs = useRef(new Map());
@@ -278,13 +279,16 @@ const PushToTalkButton = ({
               // Guard against undefined userId
               if (!userId || !stream) return null;
 
+              const roomUser = roomUsers.find(u => String(u._id) === String(userId));
+              const displayName = roomUser ? roomUser.username : `Kullanıcı ${String(userId).slice(0, 8)}`;
+
               return (
                 <div key={userId} className="bg-green-50 rounded-lg p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Volume2 size={16} className="text-green-600" />
                       <span className="text-sm font-medium text-gray-700">
-                        Kullanıcı {String(userId).slice(0, 8)}
+                        {displayName}
                       </span>
                     </div>
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>

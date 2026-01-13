@@ -846,6 +846,7 @@ const VoiceChat = () => {
                       nearbyUsersCount={nearbyUsersWithDistance.length}
                       audioPermissionGranted={audioPermissionGranted}
                       audioEnabled={audioEnabled}
+                      roomUsers={roomUsers}
                     />
                   )}
                 </div>
