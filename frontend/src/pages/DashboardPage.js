@@ -9,6 +9,8 @@ import { usePWA } from '../hooks/usePWA';
 import InstallPWA from '../components/InstallPWA';
 
 const DashboardPage = () => {
+  console.log('🔵 Dashboard Mounted, InstallPWA imported:', InstallPWA);
+
   const { user, token, logout } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();

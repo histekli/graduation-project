@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FaDownload, FaTimes, FaMobileAlt, FaChrome, FaBug } from 'react-icons/fa';
 
 const InstallPWA = () => {
+    console.log('🔵 InstallPWA Component Mounted');
+
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isStandalone, setIsStandalone] = useState(false);
