@@ -77,8 +77,10 @@ const InstallPWA = () => {
                     setDebugInfo(prev => ({ ...prev, dismissed: true, daysSince: daysSinceDismiss.toFixed(1) }));
                 }
 
-                // Show prompt if never dismissed or dismissed more than 7 days ago
-                if (daysSinceDismiss >= 7) {
+                // Show prompt if never dismissed or dismissed more than 10 seconds ago (TEST)
+                // Production: change 10 to (7 * 24 * 60 * 60) for 7 days
+                const secondsSinceDismiss = dismissed ? (Date.now() - parseInt(dismissed)) / 1000 : 999;
+                if (secondsSinceDismiss >= 10) {  // 10 seconds for testing
                     setShowInstallPrompt(true);
                 }
             }, 5000);

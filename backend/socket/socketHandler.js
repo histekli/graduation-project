@@ -146,6 +146,7 @@ module.exports = (io, redisLocationService) => {
             name: room.name
           }
         });
+        console.log(`📢 user_room_changed broadcast: ${socket.user.username} → ${room.name}`);
 
         console.log(`✅ ${socket.user.username} oda
 ya katıldı: ${room.name}`);
@@ -248,6 +249,7 @@ ya katıldı: ${room.name}`);
           username: socket.user.username,
           currentRoom: null // Lobby'de
         });
+        console.log(`📢 user_room_changed broadcast: ${socket.user.username} → Lobby`);
 
         // Mediasoup Cleanup - Kullanıcı odadan manuel çıkarsa kaynaklarını temizle (Zombie Producer Önleme)
         const mediasoupManager = require('../mediasoup/manager');
