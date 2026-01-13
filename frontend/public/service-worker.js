@@ -1,105 +1,131 @@
-// GeoTalk Service Worker
-// Offline support and caching for PWA
+// GeoTalk Service Worker - Optimized for Standalone PWA
+// Version 1.1
 
-const CACHE_NAME = 'geotalk-v1';
-const urlsToCache = [
+const CACHE_NAME = 'geotalk-v1.1';
+const RUNTIME_CACHE = 'geotalk-runtime-v1';
+
+// Essential files to cache on install
+const PRECACHE_URLS = [
     '/',
-    '/static/css/main.css',
-    '/static/js/main.js',
+    '/dashboard',
     '/manifest.json',
     '/logo192.png',
     '/logo512.png',
 ];
 
-// Install event - cache essential files
+// Install event - precache essential resources
 self.addEventListener('install', (event) => {
-    console.log('[Service Worker] Installing...');
+    console.log('[SW] Installing Service Worker v1.1');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('[Service Worker] Caching app shell');
-                return cache.addAll(urlsToCache);
+                console.log('[SW] Precaching app shell');
+                return cache.addAll(PRECACHE_URLS);
             })
-            .then(() => self.skipWaiting()) // Activate immediately
+            .then(() => self.skipWaiting())
+            .catch((error) => {
+                console.error('[SW] Precache failed:', error);
+            })
     );
 });
 
 // Activate event - clean old caches
 self.addEventListener('activate', (event) => {
-    console.log('[Service Worker] Activating...');
+    console.log('[SW] Activating Service Worker v1.1');
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        console.log('[Service Worker] Deleting old cache:', cacheName);
-                        return caches.delete(cacheName);
-                    }
-                })
+                cacheNames
+                    .filter((name) => name !== CACHE_NAME && name !== RUNTIME_CACHE)
+                    .map((name) => {
+                        console.log('[SW] Deleting old cache:', name);
+                        return caches.delete(name);
+                    })
             );
-        }).then(() => self.clients.claim()) // Take control immediately
+        }).then(() => {
+            console.log('[SW] Service Worker activated');
+            return self.clients.claim();
+        })
     );
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch event - Network First with Cache Fallback
 self.addEventListener('fetch', (event) => {
-    // Skip WebSocket and API calls
-    if (event.request.url.includes('socket.io') ||
-        event.request.url.includes('/api/')) {
+    const { request } = event;
+    const url = new URL(request.url);
+
+    // Skip non-GET requests
+    if (request.method !== 'GET') {
         return;
     }
 
+    // Skip WebSocket, Socket.IO, and API calls
+    if (
+        url.pathname.includes('socket.io') ||
+        url.pathname.startsWith('/api/') ||
+        url.protocol === 'ws:' ||
+        url.protocol === 'wss:'
+    ) {
+        return;
+    }
+
+    // Network First strategy for HTML documents
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    const responseClone = response.clone();
+                    caches.open(RUNTIME_CACHE).then((cache) => {
+                        cache.put(request, responseClone);
+                    });
+                    return response;
+                })
+                .catch(() => {
+                    return caches.match(request).then((cached) => {
+                        return cached || caches.match('/');
+                    });
+                })
+        );
+        return;
+    }
+
+    // Cache First for static assets
     event.respondWith(
-        fetch(event.request)
-            .then((response) => {
-                // Clone response because it can only be consumed once
-                const responseToCache = response.clone();
-
-                caches.open(CACHE_NAME)
-                    .then((cache) => {
-                        cache.put(event.request, responseToCache);
+        caches.match(request).then((cached) => {
+            if (cached) {
+                // Return cached and update in background
+                fetch(request).then((response) => {
+                    caches.open(RUNTIME_CACHE).then((cache) => {
+                        cache.put(request, response.clone());
                     });
+                }).catch(() => { });
+                return cached;
+            }
 
-                return response;
-            })
-            .catch(() => {
-                // Network failed, try cache
-                return caches.match(event.request)
-                    .then((response) => {
-                        if (response) {
-                            return response;
-                        }
-
-                        // Return offline page for navigation requests
-                        if (event.request.mode === 'navigate') {
-                            return caches.match('/');
-                        }
-                    });
-            })
+            return fetch(request)
+                .then((response) => {
+                    if (response.status === 200) {
+                        const responseClone = response.clone();
+                        caches.open(RUNTIME_CACHE).then((cache) => {
+                            cache.put(request, responseClone);
+                        });
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    if (request.mode === 'navigate') {
+                        return caches.match('/');
+                    }
+                });
+        })
     );
 });
 
-// Background sync for offline messages (future enhancement)
-self.addEventListener('sync', (event) => {
-    if (event.tag === 'sync-messages') {
-        console.log('[Service Worker] Syncing offline messages');
-        // Implement offline message queue here
+// Message handler
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
     }
 });
 
-// Push notifications (future enhancement)
-self.addEventListener('push', (event) => {
-    console.log('[Service Worker] Push notification received');
-
-    const options = {
-        body: event.data ? event.data.text() : 'New message',
-        icon: '/logo192.png',
-        badge: '/logo192.png',
-        vibrate: [200, 100, 200],
-        tag: 'geotalk-notification',
-    };
-
-    event.waitUntil(
-        self.registration.showNotification('GeoTalk', options)
-    );
-});
+console.log('[SW] Service Worker v1.1 loaded');

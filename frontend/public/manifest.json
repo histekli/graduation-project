@@ -2,41 +2,49 @@
   "name": "GeoTalk - WebRTC Voice Communication",
   "short_name": "GeoTalk",
   "description": "Real-time voice communication with location sharing for mobile and car use",
-  "start_url": "/",
+  "start_url": "/dashboard?source=pwa",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#f8fafc",
   "theme_color": "#3B82F6",
-  "orientation": "portrait-primary",
+  "orientation": "any",
+  "scope": "/",
   "icons": [
     {
       "src": "/logo192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/logo192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/logo512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "categories": ["social", "communication", "navigation"],
-  "screenshots": [
-    {
-      "src": "/screenshot1.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Voice chat with live location tracking"
-    }
+  "categories": [
+    "social",
+    "communication",
+    "navigation"
   ],
   "shortcuts": [
     {
-      "name": "Join Room",
-      "short_name": "Join",
-      "description": "Quickly join a voice room",
-      "url": "/dashboard",
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Go to dashboard",
+      "url": "/dashboard?source=shortcut",
       "icons": [
         {
           "src": "/logo192.png",
@@ -45,23 +53,9 @@
       ]
     }
   ],
-  "related_applications": [],
-  "prefer_related_applications": false,
-  "scope": "/",
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  },
-  "share_target": {
-    "action": "/share",
-    "method": "GET",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  },
-  "permissions": [
-    "geolocation",
-    "microphone"
-  ]
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "prefer_related_applications": false
 }

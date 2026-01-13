@@ -54,9 +54,12 @@ body {
   0% {
     transform: scale(0.33);
   }
-  40%, 50% {
+
+  40%,
+  50% {
     opacity: 1;
   }
+
   100% {
     opacity: 0;
     transform: scale(1.2);
@@ -128,7 +131,7 @@ body {
   .mobile-only {
     display: block;
   }
-  
+
   .desktop-only {
     display: none;
   }
@@ -138,7 +141,7 @@ body {
   .mobile-only {
     display: none;
   }
-  
+
   .desktop-only {
     display: block;
   }
