@@ -161,16 +161,30 @@ const DashboardPage = () => {
         setOnlineUsers(prev => prev.filter(u => u._id !== data.user._id));
       };
 
+      const handleUserRoomChanged = (data) => {
+        console.log('🚪 Dashboard: Kullanıcı oda değiştirdi:', data.username, data.currentRoom?.name || 'Lobby');
+        setOnlineUsers(prev => {
+          return prev.map(u => {
+            if (u._id === data.userId) {
+              return { ...u, currentRoom: data.currentRoom };
+            }
+            return u;
+          });
+        });
+      };
+
       socket.on('room_created', handleRoomCreated);
       socket.on('room_deleted', handleRoomDeleted);
       socket.on('user_online', handleUserOnline);
       socket.on('user_offline', handleUserOffline);
+      socket.on('user_room_changed', handleUserRoomChanged);
 
       return () => {
         socket.off('room_created', handleRoomCreated);
         socket.off('room_deleted', handleRoomDeleted);
         socket.off('user_online', handleUserOnline);
         socket.off('user_offline', handleUserOffline);
+        socket.off('user_room_changed', handleUserRoomChanged);
       };
     }
   }, [socket]);

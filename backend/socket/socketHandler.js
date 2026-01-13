@@ -137,6 +137,16 @@ module.exports = (io, redisLocationService) => {
           currentRoom: u.currentRoom
         })));
 
+        // Dashboard'lara bu kullanıcının odaya girdiğini bildir (Tüm bağlı kullanıcılara)
+        io.emit('user_room_changed', {
+          userId: socket.user._id,
+          username: socket.user.username,
+          currentRoom: {
+            _id: roomId,
+            name: room.name
+          }
+        });
+
         console.log(`✅ ${socket.user.username} oda
 ya katıldı: ${room.name}`);
 
@@ -231,6 +241,13 @@ ya katıldı: ${room.name}`);
           isOnline: u.isOnline,
           currentRoom: u.currentRoom
         })));
+
+        // Dashboard'lara bu kullanıcının lobby'ye döndüğünü bildir
+        io.emit('user_room_changed', {
+          userId: socket.user._id,
+          username: socket.user.username,
+          currentRoom: null // Lobby'de
+        });
 
         // Mediasoup Cleanup - Kullanıcı odadan manuel çıkarsa kaynaklarını temizle (Zombie Producer Önleme)
         const mediasoupManager = require('../mediasoup/manager');
@@ -458,6 +475,9 @@ ya katıldı: ${room.name}`);
             isOnline: u.isOnline,
             currentRoom: u.currentRoom
           })));
+
+          // Kullanıcının currentRoom'unu temizle
+          await User.findByIdAndUpdate(socket.user._id, { currentRoom: null });
         }
 
         // Redis'ten konum bilgisini sil
