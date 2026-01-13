@@ -117,10 +117,9 @@ const ProfilePage = () => {
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-gray-900">{user.username}</h2>
                 <div className="flex items-center space-x-2 mt-1">
-                  <div className={`w-2 h-2 rounded-full ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                  <span className="text-sm text-gray-600">
-                    {user.isOnline ? 'Çevrimiçi' : `Son görülme: ${formatLastSeen(user.lastSeen)}`}
-                  </span>
+                  {/* Kendi profiline bakıyorsan her zaman çevrimiçisin */}
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-sm text-gray-600">Çevrimiçi</span>
                 </div>
               </div>
             </div>
@@ -179,9 +178,7 @@ const ProfilePage = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Durum</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {user.isOnline ? 'Aktif' : 'Çevrimdışı'}
-                </p>
+                <p className="text-lg font-semibold text-gray-900">Aktif</p>
               </div>
             </div>
           </div>
