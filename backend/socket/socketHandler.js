@@ -21,6 +21,16 @@ module.exports = (io, redisLocationService) => {
       // Kullanıcıyı online yap ve socket ID'yi kaydet
       await socket.user.setOnline(socket.id);
 
+      // TÜM kullanıcılara bu kullanıcının online olduğunu bildir (Dashboard için)
+      io.emit('user_online', {
+        user: {
+          _id: socket.user._id,
+          username: socket.user.username,
+          avatar: socket.user.avatar,
+          isOnline: true
+        }
+      });
+
       // Kullanıcının mevcut odasını kontrol et
       if (socket.user.currentRoom) {
         socket.join(socket.user.currentRoom.toString());
@@ -118,7 +128,17 @@ module.exports = (io, redisLocationService) => {
           }
         });
 
-        console.log(`✅ ${socket.user.username} odaya katıldı: ${room.name}`);
+        // TÜM kullanıcılara güncel kullanıcı listesini gönder
+        io.to(roomId.toString()).emit('room_users_updated', roomUsers.map(u => ({
+          _id: u._id,
+          username: u.username,
+          avatar: u.avatar,
+          isOnline: u.isOnline,
+          currentRoom: u.currentRoom
+        })));
+
+        console.log(`✅ ${socket.user.username} oda
+ya katıldı: ${room.name}`);
 
         // Send existing producers to the newly joined user
         // This ensures they receive all current producers immediately without race conditions
@@ -203,6 +223,15 @@ module.exports = (io, redisLocationService) => {
         const remainingUsers = await User.find({ currentRoom: roomId });
         console.log(`👥 [DEBUG] Odada Kalanlar:`, remainingUsers.map(u => `${u.username} (${u._id})`));
 
+        // Odadaki kalanların güncel listesini tüm kullanıcılara gönder
+        io.to(roomId.toString()).emit('room_users_updated', remainingUsers.map(u => ({
+          _id: u._id,
+          username: u.username,
+          avatar: u.avatar,
+          isOnline: u.isOnline,
+          currentRoom: u.currentRoom
+        })));
+
         // Mediasoup Cleanup - Kullanıcı odadan manuel çıkarsa kaynaklarını temizle (Zombie Producer Önleme)
         const mediasoupManager = require('../mediasoup/manager');
         await mediasoupManager.cleanupSocket(socket.id);
@@ -212,6 +241,34 @@ module.exports = (io, redisLocationService) => {
         socket.emit('error', { message: 'Odadan ayrılma hatası' });
       }
     });
+
+    // Oda kullanıcılarını getir (Manuel güncelleme için)
+    socket.on('get_room_users', async (data) => {
+      try {
+        const { roomId } = data;
+
+        if (!roomId) {
+          return socket.emit('error', { message: 'Room ID gerekli' });
+        }
+
+        const roomUsers = await User.find({ currentRoom: roomId });
+
+        socket.emit('room_users_updated', roomUsers.map(u => ({
+          _id: u._id,
+          username: u.username,
+          avatar: u.avatar,
+          isOnline: u.isOnline,
+          currentRoom: u.currentRoom
+        })));
+
+        console.log(`🔄 Kullanıcı listesi gönderildi: ${socket.user.username} (${roomUsers.length} kullanıcı)`);
+
+      } catch (error) {
+        console.error('❌ Get room users hatası:', error);
+        socket.emit('error', { message: 'Kullanıcı listesi alma hatası' });
+      }
+    });
+
 
     // Mesaj gönderme
     socket.on('send_message', async (data) => {
@@ -373,14 +430,34 @@ module.exports = (io, redisLocationService) => {
         // Kullanıcıyı offline yap
         await socket.user.setOffline();
 
+        // TÜM kullanıcılara bu kullanıcının offline olduğunu bildir (Dashboard için)
+        io.emit('user_offline', {
+          user: {
+            _id: socket.user._id,
+            username: socket.user.username
+          }
+        });
+
         // Odadan ayrıl
         if (socket.user.currentRoom) {
-          socket.to(socket.user.currentRoom.toString()).emit('user_left', {
+          const roomId = socket.user.currentRoom.toString();
+
+          socket.to(roomId).emit('user_left', {
             user: {
               _id: socket.user._id,
               username: socket.user.username
             }
           });
+
+          // Odadaki kalanların güncel listesini gönder
+          const remainingUsers = await User.find({ currentRoom: roomId });
+          io.to(roomId).emit('room_users_updated', remainingUsers.map(u => ({
+            _id: u._id,
+            username: u.username,
+            avatar: u.avatar,
+            isOnline: u.isOnline,
+            currentRoom: u.currentRoom
+          })));
         }
 
         // Redis'ten konum bilgisini sil

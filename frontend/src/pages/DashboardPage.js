@@ -144,18 +144,33 @@ const DashboardPage = () => {
         setPublicRooms(prev => prev.filter(r => r._id !== roomId));
       };
 
-      const handleRoomCountUpdate = (data) => {
-        // data: { roomId, userCount } (Backend'de bunu emit etmek gerekir)
-        // Şimdilik pas geçiyoruz veya implemente edebiliriz.
+      const handleUserOnline = (data) => {
+        console.log('🟢 Dashboard: Kullanıcı online:', data.user.username);
+        setOnlineUsers(prev => {
+          // Kullanıcı zaten listede mi kontrol et
+          if (prev.some(u => u._id === data.user._id)) {
+            return prev.map(u => u._id === data.user._id ? { ...u, isOnline: true } : u);
+          }
+          // Yeni kullanıcı ekle
+          return [...prev, data.user];
+        });
+      };
+
+      const handleUserOffline = (data) => {
+        console.log('🔴 Dashboard: Kullanıcı offline:', data.user.username);
+        setOnlineUsers(prev => prev.filter(u => u._id !== data.user._id));
       };
 
       socket.on('room_created', handleRoomCreated);
       socket.on('room_deleted', handleRoomDeleted);
-      // socket.on('room_updated', ...); 
+      socket.on('user_online', handleUserOnline);
+      socket.on('user_offline', handleUserOffline);
 
       return () => {
         socket.off('room_created', handleRoomCreated);
         socket.off('room_deleted', handleRoomDeleted);
+        socket.off('user_online', handleUserOnline);
+        socket.off('user_offline', handleUserOffline);
       };
     }
   }, [socket]);
