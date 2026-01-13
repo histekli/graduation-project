@@ -202,7 +202,7 @@ const useMediasoup = (socket, roomId, userId) => {
   /**
    * Consume Audio from a remote producer
    */
-  const consumeAudio = useCallback(async (producerId) => {
+  const consumeAudio = useCallback(async (producerId, userId) => {
     try {
       // Check if already consuming
       if (consumersRef.current.has(producerId)) {
@@ -215,7 +215,7 @@ const useMediasoup = (socket, roomId, userId) => {
         return;
       }
 
-      console.log(`🔄 Preparing to consume producer: ${producerId}`);
+      console.log(`🔄 Preparing to consume producer: ${producerId} for user: ${userId}`);
 
       const { rtpCapabilities } = deviceRef.current;
 
@@ -256,17 +256,17 @@ const useMediasoup = (socket, roomId, userId) => {
       const stream = new MediaStream();
       stream.addTrack(consumer.track);
 
-      // Map stream to user ID - Backend should provide userId mapping ideally
-      // For now, we rely on producerId or socket events to map producer -> user
-      // But we can just update remoteStreams with producerId key for raw playback
+      // Map stream to USER ID directly
       setRemoteStreams(prev => {
         const newMap = new Map(prev);
-        // We need a way to know WHICH user this is.
-        // For simplicity in this legacy refactor, we might key by producerId first
-        // Or better, backend 'newProducer' event sends { producerId, userId }
-        newMap.set(producerId, stream);
+        // Use userId if available, otherwise fallback to producerId
+        // This solves the 'Remote stream not found' issue in VoiceChat.js
+        const key = userId || producerId;
+        newMap.set(key, stream);
         return newMap;
       });
+      // Also keep in ref
+      remoteStreamsRef.current.set(userId || producerId, stream);
       remoteStreamsRef.current.set(producerId, stream);
 
       // Consumer events
@@ -343,30 +343,9 @@ const useMediasoup = (socket, roomId, userId) => {
           await createRecvTransport();
         }
 
-        // Consume the audio
-        await consumeAudio(producerId);
+        // Consume the audio passing the USER ID
+        await consumeAudio(producerId, actualUserId);
 
-        // Update UI with User ID mapping
-        if (actualUserId) {
-          setRemoteStreams(prev => {
-            const stream = remoteStreamsRef.current.get(producerId);
-            if (stream) {
-              const newMap = new Map(prev);
-              newMap.set(actualUserId, stream); // Map by UserID for UI
-              // Also keep producerId mapping as backup or for cleanup? 
-              // Actually, keeping both might duplicate render. 
-              // But 'consumeAudio' adds by producerId first.
-              // We should probably remove the producerId key if we have userId to avoid duplication in iterator?
-              // VoiceChat iterates map entries. If we have [producerId, stream] AND [userId, stream], we render audio twice!
-              // Let's remove producerId key if it differs from userId
-              if (producerId !== actualUserId) {
-                newMap.delete(producerId);
-              }
-              return newMap;
-            }
-            return prev;
-          });
-        }
       } catch (error) {
         console.error('❌ Failed to handle new producer:', error);
       }
