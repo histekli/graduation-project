@@ -811,9 +811,12 @@ const VoiceChat = () => {
 
                         <div className="space-y-3">
                           <button
-                            onClick={() => {
-                              // Using the new separated method
-                              enableMicrophone().catch(err => setError('Mikrofon hatası: ' + err.message));
+                            onClick={async () => {
+                              // Join as listener
+                              await joinAsListener();
+
+                              // Optional: Request Mic immediately so user sees permission prompt
+                              await enableMicrophone().catch(err => setError('Mikrofon hatası: ' + err.message));
                             }}
                             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-lg shadow-md transition-all w-full"
                           >
@@ -1029,6 +1032,9 @@ const VoiceChat = () => {
                     console.log('👋 User interaction received, connecting audio...');
                     setNeedsAudioInteraction(false);
                     await joinAsListener();
+
+                    // 4. Request Mic Permission (Ignore error if denied, user can still listen)
+                    enableMicrophone().catch(e => console.log('Mic permission ignored:', e));
 
                   } catch (err) {
                     console.error('Connection failed:', err);
