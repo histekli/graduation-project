@@ -66,10 +66,10 @@ const InstallPWA = () => {
             });
         }
 
-        // For iOS, show manual instructions after some time
-        if (iOS && !isStandaloneMode) {
+        // For all platforms, show install prompt after some time if not already installed
+        if (!isStandaloneMode) {
             const timer = setTimeout(() => {
-                const dismissed = localStorage.getItem('pwa-ios-dismissed');
+                const dismissed = localStorage.getItem('pwa-install-dismissed');
                 if (!dismissed || (Date.now() - parseInt(dismissed)) > 7 * 24 * 60 * 60 * 1000) {
                     setShowInstallPrompt(true);
                 }
@@ -107,13 +107,11 @@ const InstallPWA = () => {
 
     const handleDismiss = () => {
         setShowInstallPrompt(false);
-        const key = isIOS ? 'pwa-ios-dismissed' : 'pwa-install-dismissed';
-        localStorage.setItem(key, Date.now().toString());
+        localStorage.setItem('pwa-install-dismissed', Date.now().toString());
     };
 
     // Don't show if dismissed recently
-    const dismissKey = isIOS ? 'pwa-ios-dismissed' : 'pwa-install-dismissed';
-    const dismissedTime = localStorage.getItem(dismissKey);
+    const dismissedTime = localStorage.getItem('pwa-install-dismissed');
     if (dismissedTime) {
         const daysSince = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
         if (daysSince < 7) {
@@ -260,8 +258,20 @@ const InstallPWA = () => {
                                     <li>✓ Tam ekran deneyimi</li>
                                     <li>✓ Ana ekrandan hızlı erişim</li>
                                     <li>✓ Daha az batarya kullanımı</li>
-                                    <li>✓ Offline çalışma desteği</li>
                                 </ul>
+
+                                {!deferredPrompt && (
+                                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <p className="text-xs text-blue-800 font-semibold mb-2">
+                                            Manuel Kurulum:
+                                        </p>
+                                        <ol className="text-xs text-blue-700 space-y-1 pl-4">
+                                            <li>1. Menü (⋮) butonuna bas</li>
+                                            <li>2. "Uygulamayı yükle" veya "Ana ekrana ekle" seç</li>
+                                            <li>3. "Yükle" butonuna bas</li>
+                                        </ol>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -278,9 +288,9 @@ const InstallPWA = () => {
                         )}
                         <button
                             onClick={handleDismiss}
-                            className={`${isIOS ? 'flex-1' : ''} px-4 py-2.5 text-gray-600 hover:text-gray-800 font-medium transition-colors`}
+                            className="flex-1 px-4 py-2.5 text-gray-600 hover:text-gray-800 font-medium transition-colors"
                         >
-                            {isIOS ? 'Anladım' : 'Daha Sonra'}
+                            {deferredPrompt ? 'Daha Sonra' : 'Anladım'}
                         </button>
                     </div>
                 </div>
