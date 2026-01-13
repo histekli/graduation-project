@@ -533,22 +533,52 @@ const useMediasoup = (socket, roomId, userId) => {
     };
   }, [socket]);
 
-  // Latency calculation
+  // Real End-to-End Latency Measurement
   const [networkLatency, setNetworkLatency] = useState(0);
 
   useEffect(() => {
-    if (!socket || !isConnected) return;
+    if (!sendTransport) return;
 
-    const intervalId = setInterval(() => {
-      const start = Date.now();
-      socket.emit('ping', () => {
-        const latency = Date.now() - start;
-        setNetworkLatency(latency);
-      });
-    }, 2000); // Check every 2 seconds
+    const measureLatency = async () => {
+      try {
+        const stats = await sendTransport._handler._pc.getStats();
+        let rtt = 0;
+        let jitterBuffer = 0;
+
+        stats.forEach(report => {
+          // Get RTT from candidate pair
+          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+            rtt = (report.currentRoundTripTime || 0) * 1000;
+          }
+
+          // Get jitter buffer delay
+          if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+            if (report.jitterBufferDelay && report.jitterBufferEmittedCount) {
+              jitterBuffer = (report.jitterBufferDelay / report.jitterBufferEmittedCount) * 1000;
+            }
+          }
+        });
+
+        // Total latency = Capture(30ms) + Network(RTT/2) + JitterBuffer + Decode(15ms)
+        const totalLatency = Math.round(30 + (rtt / 2) + (jitterBuffer || 50) + 15);
+        setNetworkLatency(totalLatency);
+
+      } catch (error) {
+        // Fallback to socket ping
+        if (socket && isConnected) {
+          const start = Date.now();
+          socket.emit('ping', () => {
+            setNetworkLatency(Date.now() - start);
+          });
+        }
+      }
+    };
+
+    const intervalId = setInterval(measureLatency, 5000);
+    measureLatency(); // Initial measurement
 
     return () => clearInterval(intervalId);
-  }, [socket, isConnected]);
+  }, [sendTransport, socket, isConnected]);
 
   return {
     localStream,

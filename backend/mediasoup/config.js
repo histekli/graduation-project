@@ -14,14 +14,31 @@ module.exports = {
     logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'],
   },
 
-  // Router settings (Audio only)
+  // Router settings (Optimized for Low-Latency Voice Communication)
   router: {
     mediaCodecs: [
       {
         kind: 'audio',
         mimeType: 'audio/opus',
-        clockRate: 48000,
-        channels: 2,
+        clockRate: 48000,           // 48kHz = Full-band (best quality)
+        channels: 2,                 // Stereo for spatial audio
+        parameters: {
+          // LATENCY OPTIMIZATION
+          ptime: 20,                // 20ms frame = low latency + good quality balance
+
+          // QUALITY OPTIMIZATION (Voice-optimized)
+          maxaveragebitrate: 32000, // 32kbps total (16kbps per channel) - excellent for voice
+          useinbandfec: 1,          // Forward Error Correction - critical for mobile networks
+          usedtx: 0,                // Disable DTX - no startup delay when speaking
+
+          // STEREO SETTINGS
+          stereo: 1,                // Enable stereo
+          'sprop-stereo': 1,        // Signal stereo capability to receiver
+
+          // OPUS-SPECIFIC
+          cbr: 0,                   // VBR (Variable Bitrate) for better quality
+          'x-google-start-bitrate': 32, // Hint to start at 32kbps
+        },
       },
     ],
   },
