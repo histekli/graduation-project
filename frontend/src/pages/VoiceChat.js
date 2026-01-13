@@ -644,7 +644,7 @@ const VoiceChat = () => {
             </div>
             <div className="flex items-center space-x-2">
               {/* Ağ Gecikmesi */}
-              <div className="hidden sm:flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-md">
+              <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-md">
                 <span className="text-xs text-gray-600">📡</span>
                 <span className="text-sm font-medium">{networkLatency}ms</span>
               </div>
