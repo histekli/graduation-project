@@ -537,11 +537,11 @@ const useMediasoup = (socket, roomId, userId) => {
   const [networkLatency, setNetworkLatency] = useState(0);
 
   useEffect(() => {
-    if (!sendTransport) return;
+    if (!sendTransportRef.current) return;
 
     const measureLatency = async () => {
       try {
-        const stats = await sendTransport._handler._pc.getStats();
+        const stats = await sendTransportRef.current._handler._pc.getStats();
         let rtt = 0;
         let jitterBuffer = 0;
 
@@ -578,7 +578,7 @@ const useMediasoup = (socket, roomId, userId) => {
     measureLatency(); // Initial measurement
 
     return () => clearInterval(intervalId);
-  }, [sendTransport, socket, isConnected]);
+  }, [socket, isConnected]);
 
   return {
     localStream,
