@@ -283,10 +283,13 @@ const VoiceChat = () => {
 
     const handleUserLeft = (data) => {
       console.log('👤 Kullanıcı odadan ayrıldı:', data);
-      if (data?.userId) {
-        setRoomUsers(prevUsers => prevUsers.filter(user => user._id !== data.userId));
+      const userId = data?.userId || data?.user?._id;
+      if (userId) {
+        setRoomUsers(prevUsers => prevUsers.filter(user => user._id !== userId));
         // Konuşma listesinden de çıkar
-        setTalkingUsers(prev => prev.filter(id => id !== data.userId));
+        setTalkingUsers(prev => prev.filter(id => id !== userId));
+      } else {
+        console.error('❌ user_left userId bulunamadı!', data);
       }
     };
 
