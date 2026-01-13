@@ -209,6 +209,12 @@ const useMediasoup = (socket, roomId, userId) => {
         return;
       }
 
+      // Safety check: Transport must be ready
+      if (!recvTransportRef.current) {
+        console.warn('⚠️ consumeAudio called but recvTransport is not ready');
+        return;
+      }
+
       console.log(`🔄 Preparing to consume producer: ${producerId}`);
 
       const { rtpCapabilities } = deviceRef.current;

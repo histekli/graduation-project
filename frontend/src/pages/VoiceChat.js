@@ -47,6 +47,7 @@ const VoiceChat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [needsAudioInteraction, setNeedsAudioInteraction] = useState(false);
 
   // Loading timeout - 5 saniye sonra loading'i kapat
   useEffect(() => {
@@ -946,9 +947,14 @@ const VoiceChat = () => {
                     // Attempt to play immediately
                     el.play().catch(e => {
                       console.warn(`⚠️ Autoplay prevented for ${userId}, waiting for interaction:`, e);
+                      // Show interaction overlay
+                      setNeedsAudioInteraction(true);
+
                       // Add a one-time click listener to document to retry play
                       const retryPlay = () => {
-                        el.play().catch(err => console.error('❌ Retry play failed:', err));
+                        el.play()
+                          .then(() => setNeedsAudioInteraction(false))
+                          .catch(err => console.error('❌ Retry play failed:', err));
                         document.removeEventListener('click', retryPlay);
                         document.removeEventListener('touchstart', retryPlay);
                       };
@@ -966,6 +972,27 @@ const VoiceChat = () => {
           }
           return null;
         })}
+
+        {/* Audio Interaction Overlay */}
+        {needsAudioInteraction && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer animate-fade-in"
+            onClick={() => setNeedsAudioInteraction(false)}
+          >
+            <div className="bg-white p-6 rounded-2xl shadow-2xl text-center max-w-sm mx-4 transform transition-all scale-100 hover:scale-105">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                🔊
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Ses Bağlantısını Başlat</h3>
+              <p className="text-gray-600 mb-4">
+                Diğer sürücüleri duymak için lütfen ekrana dokunun.
+              </p>
+              <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition-colors w-full">
+                Sese Katıl
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
