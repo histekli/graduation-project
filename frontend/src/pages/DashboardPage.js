@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
-import { Users, Plus, MapPin, Clock, Mic, LogOut, Trash2 } from 'lucide-react';
+import { Users, Plus, MapPin, Clock, Mic, LogOut, Trash2, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { usePWA } from '../hooks/usePWA';
 
 const DashboardPage = () => {
   const { user, token, logout } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
+  const { isStandalone, isInstallable, promptInstall } = usePWA();
 
   const [publicRooms, setPublicRooms] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
@@ -379,7 +381,24 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* PWA Install Button - Mobile only */}
+              {isInstallable && !isStandalone && (
+                <button
+                  onClick={async () => {
+                    const installed = await promptInstall();
+                    if (installed) {
+                      toast.success('🎉 Uygulama yüklendi! Ana ekranınızdan açabilirsiniz.');
+                    }
+                  }}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-2 rounded-md hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg"
+                  title="Uygulamayı Yükle"
+                >
+                  <Download size={16} />
+                  <span className="hidden sm:block">Yükle</span>
+                </button>
+              )}
+
               <button
                 onClick={() => setShowCreateRoom(true)}
                 className="flex items-center space-x-2 bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600 transition-colors"
