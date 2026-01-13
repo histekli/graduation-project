@@ -202,7 +202,7 @@ const VoiceChat = () => {
 
     // Sayfa ilk açıldığında veya yenilendiğinde oda bağlantısı kurulur
     joinRoomTask();
-  }, [socket, roomId, connected, socketJoinRoom, user]);
+  }, [socket, roomId, connected, socketJoinRoom]);
 
   // Socket event listeners
   useEffect(() => {
