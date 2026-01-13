@@ -126,69 +126,7 @@ const InstallPWA = () => {
     // Always show debug button on bottom-left
     return (
         <>
-            {/* Debug Button (Always visible) */}
-            <button
-                onClick={() => setShowDebug(!showDebug)}
-                className="fixed bottom-4 left-4 bg-gray-900 text-white p-3 rounded-full shadow-lg z-50 hover:bg-gray-800 transition-all"
-                title="PWA Debug Info"
-            >
-                <FaBug />
-            </button>
 
-            {/* Debug Panel */}
-            {showDebug && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-gray-900">PWA Debug Info</h3>
-                            <button onClick={() => setShowDebug(false)} className="text-gray-500 hover:text-gray-700">
-                                <FaTimes />
-                            </button>
-                        </div>
-
-                        <div className="space-y-3 text-sm">
-                            {Object.entries(debugInfo).map(([key, value]) => (
-                                <div key={key} className="flex justify-between border-b pb-2">
-                                    <span className="font-medium text-gray-700">{key}:</span>
-                                    <span className={`text-xs ${value === true ? 'text-green-600 font-bold' :
-                                        value === false ? 'text-red-600 font-bold' :
-                                            'text-gray-900'
-                                        }`}>
-                                        {typeof value === 'boolean' ? (value ? '✅ YES' : '❌ NO') : String(value)}
-                                    </span>
-                                </div>
-                            ))}
-
-                            <div className="mt-4 pt-4 border-t">
-                                <p className="text-xs text-gray-600 mb-2">Status:</p>
-                                {isStandalone ? (
-                                    <div className="bg-green-100 text-green-800 p-2 rounded">
-                                        ✅ Running in Standalone Mode
-                                    </div>
-                                ) : deferredPrompt ? (
-                                    <div className="bg-blue-100 text-blue-800 p-2 rounded">
-                                        ℹ️ Install Prompt Available
-                                    </div>
-                                ) : (
-                                    <div className="bg-yellow-100 text-yellow-800 p-2 rounded">
-                                        ⚠️ Waiting for Install Prompt...
-                                    </div>
-                                )}
-                            </div>
-
-                            <button
-                                onClick={() => {
-                                    localStorage.clear();
-                                    window.location.reload();
-                                }}
-                                className="w-full mt-4 bg-red-500 text-white py-2 rounded hover:bg-red-600"
-                            >
-                                Clear Cache & Reload
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Install Prompt */}
             {showInstallPrompt && !isStandalone && (
