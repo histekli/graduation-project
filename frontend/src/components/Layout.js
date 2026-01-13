@@ -11,7 +11,7 @@ const Layout = () => {
   const location = useLocation();
 
   // Hide footer in voice chat room
-  const isInVoiceChat = location.pathname.includes('/room/');
+  const isInVoiceChat = location.pathname.includes('/room/') || location.pathname.includes('/voice/');
 
   const handleLogout = () => {
     logout();

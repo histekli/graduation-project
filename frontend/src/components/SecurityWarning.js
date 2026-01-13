@@ -11,11 +11,11 @@ const SecurityWarning = () => {
     setIsMobile(isMobileDevice);
 
     // HTTP ve localhost dışında uyarı göster
-    const isInsecure = window.location.protocol === 'http:' && 
-                      window.location.hostname !== 'localhost' && 
-                      window.location.hostname !== '127.0.0.1';
-    
-    if (isInsecure || isMobileDevice) {
+    const isInsecure = window.location.protocol === 'http:' &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1';
+
+    if (isInsecure) {
       setShowWarning(true);
     }
   }, []);
@@ -24,9 +24,9 @@ const SecurityWarning = () => {
     return null;
   }
 
-  const isHttpWarning = window.location.protocol === 'http:' && 
-                        window.location.hostname !== 'localhost' && 
-                        window.location.hostname !== '127.0.0.1';
+  const isHttpWarning = window.location.protocol === 'http:' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1';
 
   return (
     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
@@ -55,14 +55,14 @@ const SecurityWarning = () => {
                 </p>
               </div>
             )}
-            
+
             {isMobile && (
               <div className="mb-3">
                 <p className="font-medium flex items-center">
                   <Smartphone size={16} className="mr-2" />
                   Mobil Cihaz Mikrofon İzni Rehberi
                 </p>
-                
+
                 {/* iOS Rehberi */}
                 {/iPad|iPhone|iPod/.test(navigator.userAgent) && (
                   <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
@@ -75,7 +75,7 @@ const SecurityWarning = () => {
                     </ul>
                   </div>
                 )}
-                
+
                 {/* Android Rehberi */}
                 {/Android/.test(navigator.userAgent) && (
                   <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
@@ -88,7 +88,7 @@ const SecurityWarning = () => {
                     </ul>
                   </div>
                 )}
-                
+
                 <ul className="mt-2 list-disc list-inside space-y-1 text-sm">
                   <li>Tarayıcıyı tam ekran modunda kullanın</li>
                   <li>Cihazınızın sesli modunun açık olduğundan emin olun</li>
@@ -108,7 +108,7 @@ const SecurityWarning = () => {
               </ul>
             </div>
           </div>
-          
+
           <div className="mt-3">
             <button
               onClick={() => setShowWarning(false)}
