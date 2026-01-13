@@ -628,7 +628,7 @@ const VoiceChat = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+    <div className="flex flex-col h-[100dvh] overflow-hidden bg-gray-50">
       {/* Üst Bar - Sabit Yükseklik */}
       <div className="flex-none bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -669,13 +669,13 @@ const VoiceChat = () => {
       </div>
 
       {/* Ana İçerik - Kalan Alan */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto lg:overflow-hidden">
         <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Güvenlik Uyarısı - Compact */}
           <SecurityWarning />
 
           {/* Grid Layout - Tek Ekran */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100%-1rem)]">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-auto lg:h-[calc(100%-1rem)]">
 
             {/* Ana İçerik - Harita */}
             <div className="lg:col-span-2">
