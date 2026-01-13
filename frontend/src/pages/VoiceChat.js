@@ -386,11 +386,13 @@ const VoiceChat = () => {
             console.log('🚪 Component unmount: Odadan çıkılıyor');
 
             // API call to leave room
-            // API call to leave room
             axios.post(`/api/rooms/${roomId}/leave`)
               .catch(err => {
-                // Ignore 401 errors on unmount (token may be cleared)
-                if (err.response?.status !== 401) {
+                // Ignore expected errors on unmount
+                // 401: Token cleared
+                // 409: Already left room
+                const ignoredStatuses = [401, 409];
+                if (!ignoredStatuses.includes(err.response?.status)) {
                   console.error('Component unmount oda ayrılma API hatası:', err);
                 }
               });
