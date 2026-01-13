@@ -536,9 +536,11 @@ const VoiceChat = () => {
     axios.post(`/api/rooms/${roomId}/leave`)
       .then(() => console.log('✅ API odadan ayrılma başarılı'))
       .catch(err => {
-        // Ignore 401 errors on unmount (token may be cleared)
-        if (err.response?.status !== 401) {
+        // Ignore 401 (Unauthorized) and 409 (Conflict - already left) errors
+        if (err.response?.status !== 401 && err.response?.status !== 409) {
           console.error('❌ API odadan ayrılma hatası:', err);
+        } else {
+          console.log(`ℹ️ API ayrılma yanıtı: ${err.response?.status} (Sorun yok)`);
         }
       })
       .finally(() => {
