@@ -31,6 +31,9 @@ const InstallPWA = () => {
             userAgent: navigator.userAgent,
             hasServiceWorker: 'serviceWorker' in navigator,
             displayMode: window.matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser',
+            manifest: !!document.querySelector('link[rel="manifest"]'),
+            secureContext: window.isSecureContext,
+            protocol: window.location.protocol,
             timestamp: new Date().toISOString(),
         };
         setDebugInfo(debug);
