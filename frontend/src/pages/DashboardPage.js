@@ -376,7 +376,7 @@ const DashboardPage = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <h1 className="text-xl font-semibold text-gray-900">
-                🚗 CarVoice Dashboard
+                GeoTalk Dashboard
               </h1>
               <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -551,7 +551,7 @@ const DashboardPage = () => {
                                 {formatTime(room.createdAt)}
                               </span>
                               <span className="flex items-center">
-                                👤 {typeof room.creator === 'object' ? room.creator?.username : room.creator}
+                                {typeof room.creator === 'object' ? room.creator?.username : room.creator}
                               </span>
                             </div>
                           </div>
