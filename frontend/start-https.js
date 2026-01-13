@@ -41,7 +41,6 @@ const env = {
   // Backend URLs
   REACT_APP_API_URL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
   REACT_APP_WS_URL: process.env.REACT_APP_WS_URL || 'ws://localhost:5000',
-  REACT_APP_JANUS_WS_URL: process.env.REACT_APP_JANUS_WS_URL || 'ws://localhost:8188',
   // Disable ESLint warnings in console
   ESLINT_NO_DEV_ERRORS: 'true',
   TSC_COMPILE_ON_ERROR: 'true',
@@ -76,14 +75,14 @@ redirectApp.use('*', (req, res) => {
   const host = req.get('host');
   const hostname = host ? host.split(':')[0] : 'localhost';
   const httpsUrl = `https://${hostname}:${PORT_HTTPS}${req.originalUrl}`;
-  
+
   console.log(`🔄 HTTP -> HTTPS: ${req.originalUrl}`);
   res.redirect(301, httpsUrl);
 });
 
 const httpServer = redirectApp.listen(PORT_HTTP, '0.0.0.0', () => {
   const localIp = getLocalIp();
-  
+
   console.log('\n' + '='.repeat(60));
   console.log('🎉 GeoTalk CarVoice - Servers Running!');
   console.log('='.repeat(60));
@@ -106,7 +105,6 @@ const httpServer = redirectApp.listen(PORT_HTTP, '0.0.0.0', () => {
   console.log('');
   console.log('🔧 Backend servislerin çalıştığından emin olun:');
   console.log('   • Backend API: http://localhost:5000');
-  console.log('   • Janus WebSocket: ws://localhost:8188');
   console.log('   • MongoDB: mongodb://localhost:27017');
   console.log('   • Redis: redis://localhost:6379');
   console.log('');
@@ -133,7 +131,7 @@ process.on('SIGTERM', () => {
 function getLocalIp() {
   const { networkInterfaces } = require('os');
   const nets = networkInterfaces();
-  
+
   for (const name of Object.keys(nets)) {
     for (const net of nets[name]) {
       // IPv4, not internal, not VM
@@ -142,6 +140,6 @@ function getLocalIp() {
       }
     }
   }
-  
+
   return 'localhost';
 }
