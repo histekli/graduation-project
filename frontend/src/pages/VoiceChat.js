@@ -354,6 +354,22 @@ const VoiceChat = () => {
 
       socket.on('error', handleRoomError);
 
+      // Reconnect Logic - Bağlantı koparsa veri senkronizasyonu
+      const handleReconnect = () => {
+        console.log('🔄 Socket reconnected, Syncing room data...');
+        if (roomId) {
+          // Socket odasına tekrar gir (backend socket.id değişmiş olabilir)
+          socket.emit('join_room', { roomId });
+          // Kullanıcı listesini güncelle
+          socket.emit('get_room_users', { roomId });
+        }
+      };
+
+      socket.on('reconnect', handleReconnect);
+      // İlk connection'da da çalışsın (sayfa yenileme hariç bağlantı gelince)
+      // socket.connected ise zaten buraya girmez, event connect olunca girer
+      socket.on('connect', handleReconnect);
+
       // Auth Hatası - Token geçersizse çıkış yap
       socket.on('auth_error', () => {
         console.error('❌ Socket Auth Hatası - Oturum kapatılıyor');

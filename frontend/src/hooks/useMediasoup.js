@@ -165,6 +165,13 @@ const useMediasoup = (socket, roomId, userId) => {
         console.warn('⚠️ Device not initialized, initializing now...');
         await initDevice();
       }
+
+      // Safety: Close existing transport to avoid duplicates or state mismatch
+      if (recvTransportRef.current) {
+        try { recvTransportRef.current.close(); } catch (e) { }
+        recvTransportRef.current = null;
+      }
+
       const recvTransport = deviceRef.current.createRecvTransport(transportOptions);
       console.log('🔍 Frontend recv transport ID:', recvTransport.id);
       console.log('🔍 IDs eşleşiyor mu?', recvTransport.id === transportOptions.id);
@@ -369,8 +376,8 @@ const useMediasoup = (socket, roomId, userId) => {
         await initDevice();
       }
 
-      // Create receive transport if not ready
-      if (!recvTransportRef.current) {
+      // Create receive transport if not ready or closed
+      if (!recvTransportRef.current || recvTransportRef.current.closed) {
         await createRecvTransport();
       }
 
