@@ -966,7 +966,19 @@ const VoiceChat = () => {
                 autoPlay
                 playsInline
                 controls={false}
-                style={{ display: 'none' }}
+                style={{
+                  position: 'absolute',
+                  width: '1px',
+                  height: '1px',
+                  padding: 0,
+                  margin: '-1px',
+                  overflow: 'hidden',
+                  clip: 'rect(0, 0, 0, 0)',
+                  whiteSpace: 'nowrap',
+                  border: 0,
+                  opacity: 0.1, // iOS hack: keep element "visible"
+                  pointerEvents: 'none'
+                }}
               />
             );
           }
@@ -977,7 +989,16 @@ const VoiceChat = () => {
         {needsAudioInteraction && (
           <div
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer animate-fade-in"
-            onClick={() => setNeedsAudioInteraction(false)}
+            onClick={() => {
+              setNeedsAudioInteraction(false);
+              // iOS Audio Unlock: Try to play all existing audio elements
+              const audios = document.querySelectorAll('audio');
+              audios.forEach(a => {
+                a.muted = false;
+                // Promise catch is important to avoid unhandled rejections
+                a.play().catch(e => console.log('Unlock play attempt:', e));
+              });
+            }}
           >
             <div className="bg-white p-6 rounded-2xl shadow-2xl text-center max-w-sm mx-4 transform transition-all scale-100 hover:scale-105">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
