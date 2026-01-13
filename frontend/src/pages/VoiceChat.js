@@ -47,7 +47,8 @@ const VoiceChat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [needsAudioInteraction, setNeedsAudioInteraction] = useState(false);
+  // Default true: Always force interaction on start for iOS support
+  const [needsAudioInteraction, setNeedsAudioInteraction] = useState(true);
 
   // Loading timeout - 5 saniye sonra loading'i kapat
   useEffect(() => {
@@ -93,18 +94,15 @@ const VoiceChat = () => {
   }, [remoteStreams]);
 
   // Auto-join as listener when connected
+  // Auto-join has been disabled in favor of Manual Interaction (Overlay)
+  // to support iOS Safari autoplay policies correctly.
+  /*
   useEffect(() => {
     if (socket && roomId && !isConnected) {
-      console.log('🎧 Auto-joining as listener...');
-      // Use a small delay to ensure socket is ready
-      const timer = setTimeout(() => {
-        joinAsListener().catch(err => {
-          console.error('❌ Auto-join failed:', err);
-        });
-      }, 1000);
-      return () => clearTimeout(timer);
+      // Logic moved to "Sese Katıl" button
     }
   }, [socket, roomId, isConnected, joinAsListener]);
+  */
   // Sync audioEnabled state with hook state
   useEffect(() => {
     if (localStream && audioPermissionGranted) {
@@ -989,27 +987,53 @@ const VoiceChat = () => {
         {needsAudioInteraction && (
           <div
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer animate-fade-in"
-            onClick={() => {
-              setNeedsAudioInteraction(false);
-              // iOS Audio Unlock: Try to play all existing audio elements
-              const audios = document.querySelectorAll('audio');
-              audios.forEach(a => {
-                a.muted = false;
-                // Promise catch is important to avoid unhandled rejections
-                a.play().catch(e => console.log('Unlock play attempt:', e));
-              });
+            onClick={async () => {
+              try {
+                // 1. iOS Audio Unlock (Critical)
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                  const ctx = new AudioContext();
+                  const buffer = ctx.createBuffer(1, 1, 22050);
+                  const source = ctx.createBufferSource();
+                  source.buffer = buffer;
+                  source.connect(ctx.destination);
+                  source.start(0);
+                  if (ctx.state === 'suspended') await ctx.resume();
+                }
+
+                // 2. Play dummy audio on elements
+                const audios = document.querySelectorAll('audio');
+                audios.forEach(a => { a.muted = false; a.play().catch(() => { }); });
+
+                // 3. Join Room Audio & Reset State
+                console.log('👋 User interaction received, connecting audio...');
+                setNeedsAudioInteraction(false);
+
+                // Join as listener
+                await joinAsListener();
+
+                // Optional: Request Mic immediately if desired (uncomment if you want auto-mic)
+                // await enableMicrophone(); 
+
+              } catch (err) {
+                console.error('Connection failed:', err);
+                setError('Ses bağlantısı kurulamadı: ' + err.message);
+              }
             }}
           >
-            <div className="bg-white p-6 rounded-2xl shadow-2xl text-center max-w-sm mx-4 transform transition-all scale-100 hover:scale-105">
+            <div className="bg-white p-6 rounded-2xl shadow-2xl text-center max-w-sm mx-4 transform transition-all scale-100 hover:scale-105" onClick={e => e.stopPropagation()}>
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
                 🔊
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Ses Bağlantısını Başlat</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Sohbet'e Katıl</h3>
               <p className="text-gray-600 mb-4">
-                Diğer sürücüleri duymak için lütfen ekrana dokunun.
+                iOS ve Safari uyumluluğu için sesli sohbete manuel katılmanız gerekmektedir.
               </p>
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition-colors w-full">
-                Sese Katıl
+              <button
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition-colors w-full"
+              // Button click also bubbles up to parent div
+              >
+                BAĞLAN
               </button>
             </div>
           </div>
