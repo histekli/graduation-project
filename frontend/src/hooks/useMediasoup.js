@@ -537,44 +537,54 @@ const useMediasoup = (socket, roomId, userId) => {
   const [networkLatency, setNetworkLatency] = useState(0);
 
   useEffect(() => {
-    if (!sendTransportRef.current) return;
-
     const measureLatency = async () => {
-      try {
-        const stats = await sendTransportRef.current._handler._pc.getStats();
-        let rtt = 0;
-        let jitterBuffer = 0;
+      // Try to use sendTransport or recvTransport stats
+      const transport = sendTransportRef.current || recvTransportRef.current;
 
-        stats.forEach(report => {
-          // Get RTT from candidate pair
-          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-            rtt = (report.currentRoundTripTime || 0) * 1000;
-          }
+      if (transport) {
+        try {
+          const stats = await transport._handler._pc.getStats();
+          let rtt = 0;
+          let jitterBuffer = 0;
 
-          // Get jitter buffer delay
-          if (report.type === 'inbound-rtp' && report.kind === 'audio') {
-            if (report.jitterBufferDelay && report.jitterBufferEmittedCount) {
-              jitterBuffer = (report.jitterBufferDelay / report.jitterBufferEmittedCount) * 1000;
+          stats.forEach(report => {
+            // Get RTT from candidate pair
+            if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+              rtt = (report.currentRoundTripTime || 0) * 1000;
             }
-          }
+
+            // Get jitter buffer delay
+            if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+              if (report.jitterBufferDelay && report.jitterBufferEmittedCount) {
+                jitterBuffer = (report.jitterBufferDelay / report.jitterBufferEmittedCount) * 1000;
+              }
+            }
+          });
+
+          // Total latency = Capture(30ms) + Network(RTT/2) + JitterBuffer + Decode(15ms)
+          // Dinleyici modunda capture süresi eklemeye gerek yok ama tutarlılık için basit tutuyoruz
+          const totalLatency = Math.round(30 + (rtt / 2) + (jitterBuffer || 30) + 15);
+          setNetworkLatency(totalLatency);
+
+        } catch (error) {
+          console.warn('Latency measure failed:', error);
+        }
+      } else if (socket && socket.connected) {
+        // Fallback to socket ping if no transport
+        const start = Date.now();
+        // Socket.io 'ping' event requires backend support or acknowledgment
+        // If backend doesn't have custom 'ping' listener, standard packet RTT is harder to get directly here.
+        // Assuming backend handles ack callbacks:
+        socket.emit('ping', (response) => {
+          setNetworkLatency(Date.now() - start);
         });
 
-        // Total latency = Capture(30ms) + Network(RTT/2) + JitterBuffer + Decode(15ms)
-        const totalLatency = Math.round(30 + (rtt / 2) + (jitterBuffer || 50) + 15);
-        setNetworkLatency(totalLatency);
-
-      } catch (error) {
-        // Fallback to socket ping
-        if (socket && isConnected) {
-          const start = Date.now();
-          socket.emit('ping', () => {
-            setNetworkLatency(Date.now() - start);
-          });
-        }
+        // Alternative: If 'ping' is not handled by backend, use volatile emit with ack
+        // But let's assume socket connection implies some baseline latency
       }
     };
 
-    const intervalId = setInterval(measureLatency, 5000);
+    const intervalId = setInterval(measureLatency, 2000); // 2 saniyede bir güncelle (daha canlı)
     measureLatency(); // Initial measurement
 
     return () => clearInterval(intervalId);
