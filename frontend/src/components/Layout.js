@@ -1,12 +1,17 @@
 import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { FaCar, FaSignOutAlt, FaUser, FaHome, FaWifi, FaExclamationTriangle } from 'react-icons/fa';
+import InstallPWA from './InstallPWA';
 
 const Layout = () => {
   const { user, logout } = useAuth();
   const { connected } = useSocket();
+  const location = useLocation();
+
+  // Hide footer in voice chat room
+  const isInVoiceChat = location.pathname.includes('/room/');
 
   const handleLogout = () => {
     logout();
@@ -114,22 +119,24 @@ const Layout = () => {
         <Outlet />
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-2 md:mb-0">
-              <FaCar className="text-primary-500 text-sm sm:text-base" />
-              <span className="text-gray-600 text-xs sm:text-sm">
-                © 2026 CarVoice - WebRTC Sistem
-              </span>
-            </div>
-            <div className="text-sm text-gray-500">
-              GTU CSE Bitirme Projesi
+      {/* Footer - Hidden in voice chat room */}
+      {!isInVoiceChat && (
+        <footer className="bg-white border-t border-gray-200 mt-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-6">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="flex items-center space-x-2 mb-2 md:mb-0">
+                <FaCar className="text-primary-500 text-sm sm:text-base" />
+                <span className="text-gray-600 text-xs sm:text-sm">
+                  © 2026 CarVoice - WebRTC Sistem
+                </span>
+              </div>
+              <div className="text-xs sm:text-sm text-gray-500">
+                CSE Bitirme Projesi
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 };
