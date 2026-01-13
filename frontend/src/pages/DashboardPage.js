@@ -6,6 +6,7 @@ import { Users, Plus, MapPin, Clock, Mic, LogOut, Trash2, Download } from 'lucid
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { usePWA } from '../hooks/usePWA';
+import InstallPWA from '../components/InstallPWA';
 
 const DashboardPage = () => {
   const { user, token, logout } = useAuth();
@@ -752,6 +753,9 @@ const DashboardPage = () => {
           </div>
         </div>
       )}
+
+      {/* PWA Install Component */}
+      <InstallPWA />
     </div>
   );
 };
