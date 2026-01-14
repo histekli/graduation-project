@@ -10,7 +10,7 @@ const SERVER_IP = '46.224.207.43';
 // For now, based on your docker-compose.prod.yml: 
 // ports: - "443:3443" -> Means external 443 maps to internal 3443.
 
-export const API_URL = `https://${SERVER_IP}`;
+export const API_URL = 'https://geotalk.app';
 
 // Fallback for local development if needed
 // export const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';

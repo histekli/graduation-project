@@ -241,8 +241,8 @@ const VoiceChat = () => {
 
         // Odaya başarıyla katıldıktan SONRA konum tracking'i başlat
         // Bu, backend'de currentRoom set edildikten sonra olur
-        if (!isTracking) {
-          console.log('🔍 Odaya katılım başarılı, konum tracking otomatik başlatılıyor...');
+        if (!isTracking && !isIOS) {
+          console.log('🔍 Odaya katılım başarılı, konum tracking otomatik başlatılıyor (Android/Desktop)...');
           startTracking();
         }
       }

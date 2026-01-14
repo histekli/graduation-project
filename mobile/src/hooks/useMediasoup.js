@@ -112,6 +112,12 @@ const useMediasoup = (socket, roomId, userId) => {
                 });
             });
 
+            // Safety: Close existing transport
+            if (recvTransportRef.current) {
+                try { recvTransportRef.current.close(); } catch (e) { }
+                recvTransportRef.current = null;
+            }
+
             const recvTransport = deviceRef.current.createRecvTransport(transportOptions);
 
             recvTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
@@ -140,16 +146,16 @@ const useMediasoup = (socket, roomId, userId) => {
     }, [socket, roomId]);
 
     // Consume Audio
-    const consumeAudio = useCallback(async (producerId) => {
+    const consumeAudio = useCallback(async (producerId, userId) => {
         try {
             if (!recvTransportRef.current) {
                 console.warn('⚠️ Receive transport not ready, cannot consume');
                 return;
             }
 
-            console.log(`📥 Consuming producer: ${producerId}`);
+            console.log(`📥 Consuming producer: ${producerId} for user: ${userId}`);
 
-            const { id, kind, rtpParameters, producerUserId } = await new Promise((resolve, reject) => {
+            const { id, kind, rtpParameters } = await new Promise((resolve, reject) => {
                 socket.emit('consume', {
                     transportId: recvTransportRef.current.id,
                     rtpCapabilities: deviceRef.current.rtpCapabilities,
@@ -178,15 +184,15 @@ const useMediasoup = (socket, roomId, userId) => {
             consumersRef.current.set(producerId, consumer);
 
             // Create MediaStream for this consumer
-            // In React Native WebRTC, we typically construct a stream
             const stream = new MediaStream([consumer.track]);
 
             const newRemoteStreams = new Map(remoteStreamsRef.current);
-            newRemoteStreams.set(producerUserId, stream);
+            // Use userId if available (Robust Mapping)
+            newRemoteStreams.set(userId || producerId, stream);
             remoteStreamsRef.current = newRemoteStreams;
             setRemoteStreams(newRemoteStreams);
 
-            console.log(`✅ Consumer created for user: ${producerUserId}`);
+            console.log(`✅ Consumer created for user: ${userId || producerId}`);
 
         } catch (error) {
             console.error(`❌ Failed to consume producer ${producerId}:`, error);
@@ -298,8 +304,9 @@ const useMediasoup = (socket, roomId, userId) => {
         // We used emitEvent in SocketContext, but here we can't easily listen unless we access socket directly
         // Passed 'socket' prop is the socket instance, so standard .on works
 
-        const handleNewProducer = ({ producerId }) => {
-            consumeAudio(producerId);
+        const handleNewProducer = ({ producerId, userId, peerId }) => {
+            const actualUserId = userId || peerId;
+            consumeAudio(producerId, actualUserId);
         };
 
         const handleProducerClosed = ({ producerId, userId: producerUserId }) => {

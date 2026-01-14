@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import useMediasoup from '../hooks/useMediasoup';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { RTCView } from 'react-native-webrtc';
 
 const VoiceChatScreen = ({ route, navigation }) => {
     const { roomId } = route.params;
@@ -17,7 +18,8 @@ const VoiceChatScreen = ({ route, navigation }) => {
         stopTalking,
         isConnected,
         isTalking,
-        audioPermissionGranted
+        audioPermissionGranted,
+        remoteStreams
     } = useMediasoup(socket, roomId, user?._id);
 
     const [location, setLocation] = useState(null);
@@ -138,6 +140,15 @@ const VoiceChatScreen = ({ route, navigation }) => {
                     <Button title="Odadan Ayrıl" onPress={() => navigation.goBack()} color="red" />
                 </View>
             </View>
+
+            {/* Invisible RTCViews for Audio Playback */}
+            {remoteStreams && Array.from(remoteStreams.values()).map(stream => (
+                <RTCView
+                    key={stream.id}
+                    streamURL={stream.toURL()}
+                    style={{ width: 0, height: 0 }}
+                />
+            ))}
         </SafeAreaView>
     );
 };
