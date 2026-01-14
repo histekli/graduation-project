@@ -24,8 +24,8 @@
     "mediasoup-client": "^3.7.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "start-dev": "react-scripts start",
+    "start": "node start-https.js",
+    "start-http": "react-scripts start",
     "start-https": "node start-https.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
