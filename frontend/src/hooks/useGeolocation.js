@@ -65,9 +65,17 @@ export const useGeolocation = () => {
 
         // Daha kullanıcı dostu hata mesajları
         let errorMsg = 'Konum alınamadı';
+
+        // HTTPS kontrolü
+        const isSecureContext = window.isSecureContext;
+
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMsg = 'Konum izni reddedildi. Tarayıcı ayarlarından izin vermeniz gerekiyor.';
+            if (!isSecureContext) {
+              errorMsg = 'Konum izni reddedildi. iOS ve modern tarayıcılar için HTTPS (Güvenli Bağlantı) gereklidir.';
+            } else {
+              errorMsg = 'Konum izni reddedildi. Lütfen tarayıcı ayarlarından site ayarlarını sıfırlayıp tekrar deneyin.';
+            }
             break;
           case error.POSITION_UNAVAILABLE:
             errorMsg = 'Konum bilgisi alınamadı. Lütfen başka bir ağa bağlanmayı deneyin.';
@@ -93,9 +101,15 @@ export const useGeolocation = () => {
             errorMsg = `Konum hatası: ${error.message}`;
         }
 
+        // Hata detayını ekle (debug için)
+        errorMsg += ` (Kod: ${error.code} - ${error.message})`;
+
         setError(errorMsg);
       },
-      geoOptions
+      {
+        ...geoOptions,
+        timeout: 20000 // Timeout süresini 20 saniyeye çıkardık (iOS bazen yavaş yanıt verir)
+      }
     );
 
     // Sürekli konum takibi
@@ -121,24 +135,38 @@ export const useGeolocation = () => {
         console.error('❌ Konum takip hatası kodu:', error.code, 'mesaj:', error.message);
 
         // Daha kullanıcı dostu hata mesajları
-        let errorMsg = 'Konum takibi yapılamıyor';
+        let errorMsg = 'Konum alınamadı';
+
+        // HTTPS kontrolü
+        const isSecureContext = window.isSecureContext;
+
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMsg = 'Konum izni reddedildi. Tarayıcı ayarlarından izin vermeniz gerekiyor.';
+            if (!isSecureContext) {
+              errorMsg = 'Konum izni reddedildi. iOS ve modern tarayıcılar için HTTPS (Güvenli Bağlantı) gereklidir.';
+            } else {
+              errorMsg = 'Konum izni reddedildi. Lütfen tarayıcı ayarlarından site ayarlarını sıfırlayıp tekrar deneyin.';
+            }
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMsg = 'Konum bilgisi alınamıyor. Lütfen başka bir ağa bağlanmayı deneyin.';
+            errorMsg = 'Konum bilgisi alınamadı. GPS sinyali zayıf olabilir.';
             break;
           case error.TIMEOUT:
-            errorMsg = 'Konum bilgisi alınamadı (zaman aşımı). Lütfen tekrar deneyin.';
+            errorMsg = 'Konum bilgisi alınamadı (zaman aşımı).';
             break;
           default:
             errorMsg = `Konum hatası: ${error.message}`;
         }
 
+        // Hata detayını ekle (debug için)
+        errorMsg += ` (Kod: ${error.code} - ${error.message})`;
+
         setError(errorMsg);
       },
-      geoOptions
+      {
+        ...geoOptions,
+        timeout: 20000 // Timeout süresini 20 saniyeye çıkardık (iOS bazen yavaş yanıt verir)
+      }
     );
   };
 
