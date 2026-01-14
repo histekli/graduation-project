@@ -241,8 +241,8 @@ const VoiceChat = () => {
 
         // Odaya başarıyla katıldıktan SONRA konum tracking'i başlat
         // Bu, backend'de currentRoom set edildikten sonra olur
-        if (!isTracking && !isIOS) {
-          console.log('🔍 Odaya katılım başarılı, konum tracking otomatik başlatılıyor (Android/Desktop)...');
+        if (!isTracking) {
+          console.log('🔍 Odaya katılım başarılı, konum tracking başlatılıyor...');
           startTracking();
         }
       }
@@ -1052,6 +1052,9 @@ const VoiceChat = () => {
 
                     // 4. Request Mic Permission (Ignore error if denied, user can still listen)
                     enableMicrophone().catch(e => console.log('Mic permission ignored:', e));
+
+                    // 5. Start Location Tracking (ensures permission prompt on iOS)
+                    if (!isTracking) startTracking();
 
                   } catch (err) {
                     console.error('Connection failed:', err);
