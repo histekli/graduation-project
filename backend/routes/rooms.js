@@ -280,9 +280,12 @@ router.delete('/:roomId', authenticateToken, async (req, res) => {
       });
     }
 
-    // Mark room as inactive instead of deleting
-    room.isActive = false;
-    await room.save();
+    // Hard delete - Odayı tamamen sil
+    // Bu sayede aynı isimle tekrar oda açılabilir
+    await Room.deleteOne({ _id: roomId });
+    // Soft delete devre dışı bırakıldı:
+    // room.isActive = false;
+    // await room.save();
 
     // Clear current room for all users in this room
     await User.updateMany(
