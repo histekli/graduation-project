@@ -271,27 +271,29 @@ const PushToTalkButton = ({
       )}
 
       {/* Diğer kullanıcıların ses dalga formları */}
-      {((remoteStreams instanceof Map ? remoteStreams.size : Object.keys(remoteStreams || {}).length) > 0) && (
+      {roomUsers.some(user => remoteStreams instanceof Map ? remoteStreams.has(user._id) : false) && (
         <div className="w-full space-y-3">
-          <div className="text-xs text-gray-600 font-medium">Odadaki Diğer Kullanıcılar:</div>
+          <div className="text-xs text-gray-600 font-medium">Odadaki Diğer Kullanıcılar (Sesli):</div>
           <div className="space-y-3">
-            {Array.from(remoteStreams instanceof Map ? remoteStreams.entries() : Object.entries(remoteStreams || {})).map(([userId, stream]) => {
-              // Guard against undefined userId
-              if (!userId || !stream) return null;
+            {roomUsers.map((user) => {
+              const stream = remoteStreams instanceof Map ? remoteStreams.get(user._id) : null;
 
-              const roomUser = roomUsers.find(u => String(u._id) === String(userId));
-              const displayName = roomUser ? roomUser.username : `Kullanıcı ${String(userId).slice(0, 8)}`;
+              // Sadece aktif stream'i olan kullanıcıları göster
+              if (!stream || !stream.active) return null;
 
               return (
-                <div key={userId} className="bg-green-50 rounded-lg p-3 space-y-2">
+                <div key={user._id} className="bg-green-50 rounded-lg p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Volume2 size={16} className="text-green-600" />
+                      <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
                       <span className="text-sm font-medium text-gray-700">
-                        {displayName}
+                        {user.username}
                       </span>
                     </div>
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    {/* Ses ikonu veya animasyon */}
+                    <Volume2 size={16} className="text-green-600 animate-pulse" />
                   </div>
                   <AudioWaveform
                     audioStream={stream}
@@ -300,7 +302,7 @@ const PushToTalkButton = ({
                     height={40}
                   />
                 </div>
-              )
+              );
             })}
           </div>
         </div>

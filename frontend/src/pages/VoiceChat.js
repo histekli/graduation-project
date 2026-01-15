@@ -349,6 +349,18 @@ const VoiceChat = () => {
       socket.on('room_joined', handleRoomJoined);
       socket.on('room_users_updated', handleRoomUsersUpdated);
 
+      // Konum güncellemesini dinle ve roomUsers'ı güncelle (Senkronizasyon için)
+      socket.on('user_location_update', (data) => {
+        // nearbyUsers zaten useGeolocation ile güncelleniyor ama biz roomUsers'ı esas alacağız
+        setRoomUsers(prev => prev.map(u => {
+          if (u._id === data.userId) {
+            return { ...u, location: data.location };
+          }
+          return u;
+        }));
+      });
+
+
       // Kullanıcı giriş-çıkış olayları (standardize edilmiş)
       socket.on('user_joined', handleUserJoined);
       socket.on('user_left', handleUserLeft);
@@ -399,6 +411,7 @@ const VoiceChat = () => {
           // Standart oda olayları
           socket.off('room_joined', handleRoomJoined);
           socket.off('room_users_updated', handleRoomUsersUpdated);
+          socket.off('user_location_update');
 
           // Kullanıcı giriş-çıkış olayları (standardize edilmiş)
           socket.off('user_joined', handleUserJoined);
@@ -613,19 +626,23 @@ const VoiceChat = () => {
     };
   }, [roomId, socket, connected, navigate, localStream, stopTracking]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Yakındaki kullanıcılara mesafe ekle
-  const nearbyUsersWithDistance = nearbyUsers.map(user => {
-    if (position && user.location) {
-      const distance = calculateDistance(
-        position.latitude,
-        position.longitude,
-        user.location.latitude,
-        user.location.longitude
-      );
-      return { ...user, distance };
-    }
-    return user;
-  });
+  // Yakındaki kullanıcılara mesafe ekle - ARTIK roomUsers KULLANILIYOR
+  // nearbyUsers (hook'tan gelen) yerine roomUsers (socket'ten gelen) kullanıyoruz
+  // Böylece liste ve harita senkronize oluyor.
+  const mapUsersWithDistance = roomUsers
+    .filter(u => u.location) // Sadece konumu olanlar
+    .map(user => {
+      if (position && user.location) {
+        const distance = calculateDistance(
+          position.latitude,
+          position.longitude,
+          user.location.latitude,
+          user.location.longitude
+        );
+        return { ...user, distance, userId: user._id }; // userId mapping for VoiceMap
+      }
+      return { ...user, userId: user._id };
+    });
 
   if (loading) {
     return (
@@ -734,7 +751,7 @@ const VoiceChat = () => {
                   <div className="h-60 sm:h-80 lg:h-[500px]">
                     <VoiceMap
                       currentPosition={position}
-                      nearbyUsers={nearbyUsersWithDistance}
+                      nearbyUsers={mapUsersWithDistance}
                       talkingUsers={talkingUsers}
                       onUserClick={handleUserClick}
                       className="h-full"
