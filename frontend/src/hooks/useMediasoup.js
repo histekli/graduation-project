@@ -25,6 +25,9 @@ const useMediasoup = (socket, roomId, userId) => {
   const consumersRef = useRef(new Map()); // producerId -> consumer
   const remoteStreamsRef = useRef(new Map());
   const localStreamRef = useRef(null); // Add ref for localStream
+  // Promise refs for deduplication
+  const sendTransportPromiseRef = useRef(null);
+  const recvTransportPromiseRef = useRef(null);
 
   /**
    * Initialize Mediasoup Device
@@ -71,73 +74,97 @@ const useMediasoup = (socket, roomId, userId) => {
         return sendTransportRef.current;
       }
 
-      // Request transport from server
-      const transportOptions = await new Promise((resolve, reject) => {
-        socket.emit('createWebRtcTransport', {
-          roomId,
-          direction: 'send'
-        }, (response) => {
-          if (response.error) {
-            reject(new Error(response.error));
-          } else {
-            console.log('🔍 Backend send transport ID:', response.id);
-            resolve(response);
-          }
-        });
-      });
+      // Reuse pending promise if already creating
+      if (sendTransportPromiseRef.current) {
+        console.log('⏳ Send transport creation already in progress, waiting...');
+        return sendTransportPromiseRef.current;
+      }
 
-      // Create transport on device
-      const sendTransport = deviceRef.current.createSendTransport(transportOptions);
-      console.log('🔍 Frontend send transport ID:', sendTransport.id);
-      console.log('🔍 IDs eşleşiyor mu?', sendTransport.id === transportOptions.id);
-
-      // Handle 'connect' event
-      sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+      const createPromise = (async () => {
         try {
-          await new Promise((resolve, reject) => {
-            socket.emit('connectTransport', {
-              transportId: sendTransport.id,
-              dtlsParameters
+          // Request transport from server
+          const transportOptions = await new Promise((resolve, reject) => {
+            socket.emit('createWebRtcTransport', {
+              roomId,
+              direction: 'send'
             }, (response) => {
               if (response.error) {
                 reject(new Error(response.error));
               } else {
-                resolve();
-              }
-            });
-          });
-          callback();
-        } catch (error) {
-          errback(error);
-        }
-      });
-
-      // Handle 'produce' event
-      sendTransport.on('produce', async ({ kind, rtpParameters }, callback, errback) => {
-        try {
-          const { producerId } = await new Promise((resolve, reject) => {
-            socket.emit('produce', {
-              transportId: sendTransport.id,
-              kind,
-              rtpParameters,
-              roomId // Add roomId for backend to broadcast newProducer to room
-            }, (response) => {
-              if (response.error) {
-                reject(new Error(response.error));
-              } else {
+                console.log('🔍 Backend send transport ID:', response.id);
                 resolve(response);
               }
             });
           });
-          callback({ id: producerId });
-        } catch (error) {
-          errback(error);
-        }
-      });
 
-      sendTransportRef.current = sendTransport;
-      console.log('✅ Send transport created');
-      return sendTransport;
+          // Create transport on device
+          const sendTransport = deviceRef.current.createSendTransport(transportOptions);
+          console.log('🔍 Frontend send transport ID:', sendTransport.id);
+
+          // Handle 'connect' event
+          sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+            try {
+              await new Promise((resolve, reject) => {
+                socket.emit('connectTransport', {
+                  transportId: sendTransport.id,
+                  dtlsParameters
+                }, (response) => {
+                  if (response.error) {
+                    reject(new Error(response.error));
+                  } else {
+                    resolve();
+                  }
+                });
+              });
+              callback();
+            } catch (error) {
+              errback(error);
+            }
+          });
+
+          // Handle 'produce' event
+          sendTransport.on('produce', async ({ kind, rtpParameters }, callback, errback) => {
+            try {
+              const { producerId } = await new Promise((resolve, reject) => {
+                socket.emit('produce', {
+                  transportId: sendTransport.id,
+                  kind,
+                  rtpParameters,
+                  roomId // Add roomId for backend to broadcast newProducer to room
+                }, (response) => {
+                  if (response.error) {
+                    reject(new Error(response.error));
+                  } else {
+                    resolve(response);
+                  }
+                });
+              });
+              callback({ id: producerId });
+            } catch (error) {
+              errback(error);
+            }
+          });
+
+          sendTransportRef.current = sendTransport;
+          console.log('✅ Send transport created');
+          return sendTransport;
+        } catch (error) {
+          console.error('❌ Send transport creation failed (in promise):', error);
+          throw error;
+        }
+      })();
+
+      sendTransportPromiseRef.current = createPromise;
+
+      try {
+        return await createPromise;
+      } finally {
+        // Clear promise ref when done (success or fail)
+        // We keep the transport in sendTransportRef.current, but clear the promise
+        // so if it fails or closes later, we can try creating again.
+        sendTransportPromiseRef.current = null;
+      }
+
     } catch (error) {
       console.error('❌ Send transport creation failed:', error);
       throw error;
@@ -157,66 +184,88 @@ const useMediasoup = (socket, roomId, userId) => {
         return recvTransportRef.current;
       }
 
-      // Request transport from server
-      const transportOptions = await new Promise((resolve, reject) => {
-        socket.emit('createWebRtcTransport', {
-          roomId,
-          direction: 'recv'
-        }, (response) => {
-          if (response.error) {
-            reject(new Error(response.error));
-          } else {
-            console.log('🔍 Backend recv transport ID:', response.id);
-            resolve(response);
-          }
-        });
-      });
-
-      // Create transport on device
-      if (!deviceRef.current) {
-        console.warn('⚠️ Device not initialized, initializing now...');
-        await initDevice();
+      // Reuse pending promise if already creating
+      if (recvTransportPromiseRef.current) {
+        console.log('⏳ Recv transport creation already in progress, waiting...');
+        return recvTransportPromiseRef.current;
       }
 
-      // Safety: Close existing transport to avoid duplicates or state mismatch
-      if (recvTransportRef.current) {
-        try { recvTransportRef.current.close(); } catch (e) { }
-        recvTransportRef.current = null;
-      }
-
-      const recvTransport = deviceRef.current.createRecvTransport(transportOptions);
-      console.log('🔍 Frontend recv transport ID:', recvTransport.id);
-      console.log('🔍 IDs eşleşiyor mu?', recvTransport.id === transportOptions.id);
-
-      // Handle 'connect' event
-      recvTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+      const createPromise = (async () => {
         try {
-          await new Promise((resolve, reject) => {
-            socket.emit('connectTransport', {
-              transportId: recvTransport.id,
-              dtlsParameters
+          // Request transport from server
+          const transportOptions = await new Promise((resolve, reject) => {
+            socket.emit('createWebRtcTransport', {
+              roomId,
+              direction: 'recv'
             }, (response) => {
               if (response.error) {
                 reject(new Error(response.error));
               } else {
-                resolve();
+                console.log('🔍 Backend recv transport ID:', response.id);
+                resolve(response);
               }
             });
           });
-          callback();
-        } catch (error) {
-          errback(error);
-        }
-      });
 
-      recvTransportRef.current = recvTransport;
-      console.log('✅ Receive transport created');
-      return recvTransport;
+          // Create transport on device
+          if (!deviceRef.current) {
+            console.warn('⚠️ Device not initialized, initializing now...');
+            await initDevice();
+          }
+
+          // Safety: Close existing transport to avoid duplicates or state mismatch
+          if (recvTransportRef.current) {
+            try { recvTransportRef.current.close(); } catch (e) { }
+            recvTransportRef.current = null;
+          }
+
+          const recvTransport = deviceRef.current.createRecvTransport(transportOptions);
+          console.log('🔍 Frontend recv transport ID:', recvTransport.id);
+
+          // Handle 'connect' event
+          recvTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+            try {
+              await new Promise((resolve, reject) => {
+                socket.emit('connectTransport', {
+                  transportId: recvTransport.id,
+                  dtlsParameters
+                }, (response) => {
+                  if (response.error) {
+                    reject(new Error(response.error));
+                  } else {
+                    resolve();
+                  }
+                });
+              });
+              callback();
+            } catch (error) {
+              errback(error);
+            }
+          });
+
+          recvTransportRef.current = recvTransport;
+          console.log('✅ Receive transport created');
+          return recvTransport;
+        } catch (error) {
+          console.error('❌ Receive transport creation failed (in promise):', error);
+          throw error;
+        }
+      })();
+
+      recvTransportPromiseRef.current = createPromise;
+
+      try {
+        return await createPromise;
+      } finally {
+        // Clear promise ref when done
+        recvTransportPromiseRef.current = null;
+      }
+
     } catch (error) {
       console.error('❌ Receive transport creation failed:', error);
       throw error;
     }
-  }, [socket, roomId]);
+  }, [socket, roomId, initDevice]);
 
   /**
    * Consume Audio from a remote producer
