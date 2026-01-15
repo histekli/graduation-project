@@ -887,7 +887,7 @@ const VoiceChat = () => {
                       isConnected={isConnected}
                       remoteStreams={remoteStreams}
                       localStream={localStream}
-                      nearbyUsersCount={nearbyUsersWithDistance.length}
+                      nearbyUsersCount={mapUsersWithDistance.length}
                       audioPermissionGranted={audioPermissionGranted}
                       audioEnabled={audioEnabled}
                       roomUsers={roomUsers}
