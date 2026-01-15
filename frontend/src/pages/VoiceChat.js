@@ -240,10 +240,14 @@ const VoiceChat = () => {
         localStorage.setItem('current_room_id', data.room._id);
 
         // Odaya başarıyla katıldıktan SONRA konum tracking'i başlat
-        // Bu, backend'de currentRoom set edildikten sonra olur
+        // Ancak iOS'ta otomatik başlatma engellenmeli, kullanıcı etkileşimi beklenmeli
         if (!isTracking) {
-          console.log('🔍 Odaya katılım başarılı, konum tracking başlatılıyor...');
-          startTracking();
+          if (isIOS) {
+            console.log('📱 iOS tespit edildi: Otomatik konum takibi atlanıyor, kullanıcı etkileşimi beklenecek.');
+          } else {
+            console.log('🔍 Odaya katılım başarılı, konum tracking başlatılıyor...');
+            startTracking();
+          }
         }
       }
     };
