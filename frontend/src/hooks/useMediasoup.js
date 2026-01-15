@@ -65,6 +65,12 @@ const useMediasoup = (socket, roomId, userId) => {
     try {
       console.log('📤 Creating send transport...');
 
+      // Reuse existing transport if valid
+      if (sendTransportRef.current && !sendTransportRef.current.closed) {
+        console.log('✅ Existing send transport found, reusing...');
+        return sendTransportRef.current;
+      }
+
       // Request transport from server
       const transportOptions = await new Promise((resolve, reject) => {
         socket.emit('createWebRtcTransport', {
@@ -144,6 +150,12 @@ const useMediasoup = (socket, roomId, userId) => {
   const createRecvTransport = useCallback(async () => {
     try {
       console.log('📥 Creating receive transport...');
+
+      // Reuse existing transport if valid
+      if (recvTransportRef.current && !recvTransportRef.current.closed) {
+        console.log('✅ Existing recv transport found, reusing...');
+        return recvTransportRef.current;
+      }
 
       // Request transport from server
       const transportOptions = await new Promise((resolve, reject) => {
