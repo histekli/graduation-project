@@ -39,6 +39,16 @@ export const useGeolocation = () => {
     setError(null);
     console.log('🔍 Konum takibi başlatılıyor...');
 
+    // Permissions API Check (Bazı tarayıcılar için ön kontrol)
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+        console.log('📍 Konum izni durumu:', result.state);
+        if (result.state === 'denied') {
+          setError('Konum izni daha önce reddedilmiş. Lütfen tarayıcı ayarlarından konuma izin verin.');
+        }
+      }).catch(err => console.log('Permissions API desteklenmiyor:', err));
+    }
+
     // İlk konum alımı
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -72,9 +82,10 @@ export const useGeolocation = () => {
         switch (error.code) {
           case error.PERMISSION_DENIED:
             if (!isSecureContext) {
-              errorMsg = 'Konum izni reddedildi. iOS ve modern tarayıcılar için HTTPS (Güvenli Bağlantı) gereklidir.';
+              errorMsg = 'Konum izni engellendi. iOS ve modern tarayıcılar için HTTPS (Güvenli Bağlantı) gereklidir.';
             } else {
-              errorMsg = 'Konum izni reddedildi. Lütfen tarayıcı ayarlarından site ayarlarını sıfırlayıp tekrar deneyin.';
+              // iOS ve diğerleri için detaylı yönerge
+              errorMsg = 'Konum izni reddedildi. Ayarlarınızdan konum izni vermeniz gerekiyor. (Ayarlar > Gizlilik > Konum Servisleri > Safari > Uygulamayı Kullanırken)';
             }
             break;
           case error.POSITION_UNAVAILABLE:
@@ -143,9 +154,9 @@ export const useGeolocation = () => {
         switch (error.code) {
           case error.PERMISSION_DENIED:
             if (!isSecureContext) {
-              errorMsg = 'Konum izni reddedildi. iOS ve modern tarayıcılar için HTTPS (Güvenli Bağlantı) gereklidir.';
+              errorMsg = 'Konum izni engellendi. iOS ve modern tarayıcılar için HTTPS (Güvenli Bağlantı) gereklidir.';
             } else {
-              errorMsg = 'Konum izni reddedildi. Lütfen tarayıcı ayarlarından site ayarlarını sıfırlayıp tekrar deneyin.';
+              errorMsg = 'Konum izni reddedildi. Ayarlarınızdan konum izni vermeniz gerekiyor. (Ayarlar > Gizlilik > Konum Servisleri > Safari > Uygulamayı Kullanırken)';
             }
             break;
           case error.POSITION_UNAVAILABLE:
