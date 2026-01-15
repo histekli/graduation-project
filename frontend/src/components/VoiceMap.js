@@ -165,12 +165,7 @@ const VoiceMap = ({
                       'Bilinmiyor'
                     }
                   </div>
-                  <button
-                    onClick={() => onUserClick && onUserClick(user)}
-                    className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                  >
-                    Bağlan
-                  </button>
+
                 </div>
               </Popup>
             </Marker>
