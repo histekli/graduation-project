@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -462,12 +463,15 @@ const VoiceChat = () => {
         userFriendlyMessage = 'Mikrofon başka bir uygulama tarafından kullanılıyor olabilir.';
       }
 
+      setError(null); // Clear previous errors if any (but don't block UI)
+
       // HTTPS uyarısı
       if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
         userFriendlyMessage += '\n\n🔒 Güvenlik: Bu site HTTPS üzerinden çalışmıyor. Sesli iletişim için güvenli bağlantı gerekli olabilir.';
       }
 
-      setError(userFriendlyMessage);
+      toast.error(userFriendlyMessage, { duration: 5000 });
+      console.warn('⚠️ Audio enable warning:', userFriendlyMessage);
     }
   };
 
@@ -836,7 +840,10 @@ const VoiceChat = () => {
                               await joinAsListener();
 
                               // Optional: Request Mic immediately so user sees permission prompt
-                              await enableMicrophone().catch(err => setError('Mikrofon hatası: ' + err.message));
+                              await enableMicrophone().catch(err => {
+                                console.error('Mic activation error:', err);
+                                toast.error('Mikrofon hatası: ' + err.message);
+                              });
                             }}
                             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium text-lg shadow-md transition-all w-full"
                           >
@@ -1074,6 +1081,7 @@ const VoiceChat = () => {
       </div>
     </div>
   );
+
 };
 
 export default VoiceChat;
