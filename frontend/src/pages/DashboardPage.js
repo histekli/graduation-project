@@ -736,34 +736,7 @@ const DashboardPage = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Maksimum Kullanıcı
-                </label>
-                <select
-                  value={newRoom.maxUsers}
-                  onChange={(e) => setNewRoom({ ...newRoom, maxUsers: parseInt(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={5}>5 Kullanıcı</option>
-                  <option value={10}>10 Kullanıcı</option>
-                  <option value={20}>20 Kullanıcı</option>
-                  <option value={50}>50 Kullanıcı</option>
-                </select>
-              </div>
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isPublic"
-                  checked={newRoom.isPublic}
-                  onChange={(e) => setNewRoom({ ...newRoom, isPublic: e.target.checked })}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="isPublic" className="ml-2 text-sm text-gray-700">
-                  Genel oda (herkes katılabilir)
-                </label>
-              </div>
 
               <div className="flex justify-end space-x-3 mt-6">
                 <button

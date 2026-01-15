@@ -44,7 +44,7 @@ const HomePage = () => {
           <div className="text-center">
             <div className="flex justify-center mb-8">
               <div className="p-4 bg-white/10 rounded-full">
-                <FaCar className="text-6xl" />
+                <img src="/logo192.png" alt="CarVoice Logo" className="w-16 h-16" />
               </div>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -54,26 +54,23 @@ const HomePage = () => {
               WebRTC Tabanlı Araç İçi Sesli İletişim Sistemi
             </p>
             <p className="text-lg mb-8 text-primary-200 max-w-2xl mx-auto">
-              Sürücüler arasında gerçek zamanlı sesli iletişim kurun, konumunuzu paylaşın 
+              Sürücüler arasında gerçek zamanlı sesli iletişim kurun, konumunuzu paylaşın
               ve harita üzerinde birbirinizi görün. Modern araçlar ve mobil cihazlar için optimize edilmiştir.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
               >
                 Hesap Oluştur
               </Link>
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors"
               >
-                Giriş Yap / Hızlı Giriş
+                Giriş Yap
               </Link>
             </div>
-            <p className="mt-4 text-sm text-primary-200">
-              💡 Kayıt olmadan hızlı giriş yaparak anında sohbete başlayabilirsiniz!
-            </p>
           </div>
         </div>
       </section>
@@ -171,8 +168,8 @@ const HomePage = () => {
           <p className="text-xl text-primary-100 mb-8">
             Ücretsiz hesap oluşturun ve CarVoice'un tüm özelliklerini keşfedin
           </p>
-          <Link 
-            to="/register" 
+          <Link
+            to="/register"
             className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors inline-block"
           >
             Ücretsiz Başlayın
