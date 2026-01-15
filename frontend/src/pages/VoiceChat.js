@@ -42,7 +42,7 @@ const VoiceChat = () => {
   const [room, setRoom] = useState(null);
   const [roomUsers, setRoomUsers] = useState([]);
   const [talkingUsers, setTalkingUsers] = useState([]);
-  const [isMapVisible, setIsMapVisible] = useState(true);
+  const [isMapVisible, setIsMapVisible] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -693,7 +693,7 @@ const VoiceChat = () => {
 
       {/* Ana İçerik - Kalan Alan */}
       <div className="flex-1 overflow-y-auto lg:overflow-hidden">
-        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="h-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-4">
           {/* Güvenlik Uyarısı - Compact */}
           <SecurityWarning />
 
@@ -723,7 +723,7 @@ const VoiceChat = () => {
                     )}
                   </div>
 
-                  <div className="h-96 lg:h-[500px]">
+                  <div className="h-60 sm:h-80 lg:h-[500px]">
                     <VoiceMap
                       currentPosition={position}
                       nearbyUsers={nearbyUsersWithDistance}
@@ -759,7 +759,7 @@ const VoiceChat = () => {
                   <h3 className="text-lg font-medium text-gray-900">Ses Kontrolü</h3>
                 </div>
 
-                <div className="p-4">
+                <div className="p-3 sm:p-4">
                   {!audioEnabled ? (
                     <div className="space-y-4">
 
@@ -876,7 +876,7 @@ const VoiceChat = () => {
                   </h3>
                 </div>
 
-                <div className="max-h-64 overflow-y-auto">
+                <div className="max-h-48 sm:max-h-64 overflow-y-auto">
                   {roomUsers.map((roomUser) => (
                     <div
                       key={roomUser._id}

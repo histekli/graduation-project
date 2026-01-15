@@ -123,7 +123,7 @@ const ChatBox = ({ socket, roomId, user, isOpen, onToggle }) => {
     return (
       <button
         onClick={onToggle}
-        className="fixed bottom-6 right-6 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-all z-50 md:bottom-6 md:right-6 bottom-20 right-4"
+        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-all z-[2000]"
         aria-label="Sohbeti Aç"
       >
         <MessageCircle size={24} />
@@ -137,7 +137,7 @@ const ChatBox = ({ socket, roomId, user, isOpen, onToggle }) => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-full md:w-96 bg-white rounded-lg shadow-2xl flex flex-col z-50 max-h-[600px] md:max-h-[600px] max-h-[80vh] left-0 md:left-auto md:bottom-6 md:right-6 bottom-0 right-0 rounded-b-none md:rounded-b-lg">
+    <div className="fixed bottom-0 left-0 w-full md:left-auto md:bottom-6 md:right-6 md:w-96 bg-white rounded-t-lg md:rounded-lg shadow-2xl flex flex-col z-[2000] max-h-[80vh] md:max-h-[600px]">
       {/* Header */}
       <div className="bg-blue-500 text-white p-4 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center space-x-2">
